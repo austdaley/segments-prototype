@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Easy-Wire segments: clickable prototype</title>
+<style>
+body{margin:0}
+a{color:#0b5cad}a:hover{color:#08427c}
+.btn{padding:6px 14px;background:#fdfdfd;border:1px solid #adadad;border-radius:3px;font:inherit;cursor:pointer;color:#1a1a1a}
+.btn:hover{background:#e9f1fa}
+.btn:disabled{color:#8a8a8a;cursor:default;background:#f4f4f4}
+.pri{background:#0b5cad;color:#ffffff;border:1px solid #08427c;border-radius:3px;font:inherit;font-weight:600;padding:7px 24px;cursor:pointer}
+.pri:hover{background:#08427c}
+.link{background:none;border:none;color:#0b5cad;text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.danger{color:#a3221b}
+.mi{display:block;width:100%;text-align:left;padding:6px 14px;border:none;background:#ffffff;font:inherit;cursor:pointer;color:#1a1a1a}
+.mi:hover{background:#d6e8f8}
+.big{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:16px 18px;background:#ffffff;border:1px solid #adadad;border-radius:4px;font:inherit;cursor:pointer;width:300px;color:#1a1a1a}
+.big:hover{border-color:#0b5cad;background:#f3f8fd}
+
+html,body{background:#e6e6e6}
+#wrap{display:flex;justify-content:center;padding:12px}
+</style></head>
+<body>
+<template id="tpl">
+<div style="width: 1100px; height: 760px; box-sizing: border-box; background: #f0f0f0; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; color: #1a1a1a; border: 1px solid #8a8a8a; position: relative; display: flex; flex-direction: column; overflow: hidden">
+
+<sc-if value="{{isStart}}" hint-placeholder-val="{{ true }}">
+  <div style="height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: #ffffff; border-bottom: 1px solid #d0d0d0">
+    <div style="width: 16px; height: 16px; background: #c4262e; border-radius: 3px"></div>
+    <span>Easy-Wire</span>
+  </div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 30px">
+    <div style="display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; max-width: 720px">
+      <span style="font-size: 22px; font-weight: 600">Segments in Easy-Wire: clickable prototype</span>
+      <span style="color: #3d3d3d; line-height: 1.5">This is a mockup, not the real software. Click anything: segments, tabs, the ⋯ menus, checkboxes and dialogs all work. Nothing is saved. Use <strong>Back to start</strong> to try another path.</span>
+    </div>
+    <div style="display: flex; gap: 16px">
+      <button class="big" onClick="{{openDemo}}"><span style="font-weight: 600; font-size: 15px">Open a segmented test</span><span style="color: #3d3d3d; line-height: 1.4">Door Module Harness: 3 segments, including a switch state</span></button>
+      <button class="big" onClick="{{newTest}}"><span style="font-weight: 600; font-size: 15px">Create New Test</span><span style="color: #3d3d3d; line-height: 1.4">A normal one-segment test. Try + Add Segment.</span></button>
+      <button class="big" onClick="{{openMP}}"><span style="font-weight: 600; font-size: 15px">Create Multi-Part Test…</span><span style="color: #3d3d3d; line-height: 1.4">Several identical parts on one fixture</span></button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{isEditor}}" hint-placeholder-val="{{ false }}">
+  <div style="height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: #ffffff; border-bottom: 1px solid #d0d0d0">
+    <div style="width: 16px; height: 16px; background: #c4262e; border-radius: 3px"></div>
+    <span>Test Program Editor - {{testName}}</span>
+    <div style="flex-grow: 1"></div>
+    <button class="link" onClick="{{goStart}}">Back to start</button>
+  </div>
+  <div style="flex-grow: 1; display: flex; gap: 10px; padding: 8px 10px 0 10px; min-height: 0">
+
+    <sc-if value="{{showRail}}" hint-placeholder-val="{{ true }}">
+      <div style="width: 236px; flex-shrink: 0; background: #ffffff; border: 1px solid #c4c4c4; display: flex; flex-direction: column; position: relative">
+        <div style="padding: 10px 12px 4px 12px; font-weight: 600; font-size: 14px">Segments</div>
+        <div style="padding: 0 12px 4px 12px; color: #4a4a4a; font-size: 12px; line-height: 1.4">{{runSummary}}</div>
+        <div style="padding: 0 12px 8px 12px; color: #4a4a4a; font-size: 12px; line-height: 1.4">Click a name to focus on it. Tick boxes to show several at once.</div>
+        <button onClick="{{selWhole}}" style="{{wholeStyle}}"><span style="width: 14px; height: 14px; border: 1px solid #8a8a8a; background: #ffffff; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 1px; text-align: left"><span style="font-weight: 600">Whole test</span><span style="font-size: 12px; color: #4a4a4a">Overview of all segments</span></span></button>
+        <div style="display: flex; flex-direction: column; overflow-y: auto; min-height: 0; flex: 0 1 auto">
+          <sc-for list="{{segRows}}" as="s" hint-placeholder-count="3">
+            <div onClick="{{s.select}}" style="{{s.rowStyle}}">
+              <input type="checkbox" checked="{{s.shown}}" onChange="{{s.toggleShown}}" onClick="{{stop}}" aria-label="Show in editor" title="Show this segment in the editor" style="margin-top: 2px; accent-color: {{s.color}}">
+              <span style="width: 14px; height: 14px; background: {{s.color}}; flex-shrink: 0; margin-top: 2px"></span>
+              <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+                <span style="font-weight: {{s.weight}}">{{s.label}}</span>
+                <span style="font-size: 12px; color: #4a4a4a">{{s.sub}}</span>
+              </span>
+              <button onClick="{{s.openMenu}}" aria-label="More options" style="{{s.dotsStyle}}">⋯</button>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+          <div role="menu" style="position: absolute; left: 226px; top: {{menuTop}}; width: 190px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 6px 18px rgba(0,0,0,0.25); padding: 4px 0; z-index: 10">
+            <button class="mi" style="font-weight: 600" onClick="{{menuEdit}}">Edit segment…</button>
+            <button class="mi" onClick="{{menuEdit}}">Rename</button>
+            <button class="mi" onClick="{{menuEdit}}">Change colour</button>
+            <button class="mi" onClick="{{menuDup}}">Duplicate</button>
+            <button class="mi" onClick="{{menuUp}}">Move up</button>
+            <button class="mi" onClick="{{menuDown}}">Move down</button>
+            <div style="height: 1px; background: #e0e0e0; margin: 4px 0"></div>
+            <button class="mi danger" onClick="{{menuDelete}}">Delete segment…</button>
+          </div>
+        </sc-if>
+        <div style="flex-grow: 1"></div>
+        <div style="padding: 10px 12px; border-top: 1px solid #e2e2e2">
+          <button class="btn" onClick="{{openAdd}}" style="width: 100%; background: #e8f1fb; border-color: #0b5cad; color: #0b4a8c; font-weight: 600">+ Add Segment</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0">
+      <div style="display: flex; gap: 2px">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+          <button onClick="{{t.click}}" style="{{t.style}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+      <div style="{{frameStyle}}">
+        <sc-if value="{{showSegBanner}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px; background: {{selColor}}; color: #ffffff; padding: 7px 10px">
+            <span style="font-weight: 600">{{selLabel}}</span><span>{{bannerText}}</span>
+            <div style="flex-grow: 1"></div>
+            <button class="link" style="color: #ffffff" onClick="{{selWhole}}">Show whole test</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{showSeveralBanner}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #f7f7f7; border: 1px solid #c4c4c4; padding: 7px 10px">
+            <span style="font-weight: 600">Showing</span>
+            <sc-for list="{{shownChips}}" as="u" hint-placeholder-count="2"><span style="padding: 1px 9px; border-radius: 10px; color: #ffffff; background: {{u.color}}">{{u.label}}</span></sc-for>
+            <span>{{severalText}}</span>
+            <div style="flex-grow: 1"></div>
+            <button class="link" onClick="{{selWhole}}">Show whole test</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{showWholeBanner}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #eef5fc; border: 1px solid #b9d4ef; padding: 7px 10px">{{wholeBannerText}}</div>
+        </sc-if>
+
+        <sc-if value="{{tabOv}}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 15px; font-weight: 600">How this test runs</div>
+          <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap">
+            <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+              <div style="flex: 1 1 200px; border: 1px solid {{g.border}}; background: {{g.bg}}; padding: 9px 11px; display: flex; flex-direction: column; gap: 4px">
+                <span style="font-weight: 600">{{g.title}}</span>
+                <sc-for list="{{g.items}}" as="it" hint-placeholder-count="2">
+                  <span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; background: {{it.color}}"></span>{{it.label}}</span>
+                </sc-for>
+                <span style="font-size: 12px; color: #3d3d3d">{{g.note}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 40px 190px 90px 1fr 90px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>On</span><span>Segment</span><span>Instructions</span><span>Connectors</span><span>LV / HV</span><span>Settings · prompt</span></div>
+            <sc-for list="{{segRows}}" as="s" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 40px 190px 90px 1fr 90px 1fr; gap: 6px; padding: 7px 10px; border-bottom: 1px solid #ececec; align-items: center">
+                <input type="checkbox" checked="{{s.on}}" onChange="{{s.toggleOn}}" aria-label="Segment on">
+                <button class="link" onClick="{{s.select}}" style="text-align: left; display: flex; gap: 6px; align-items: center; color: #1a1a1a; text-decoration: none"><span style="width: 12px; height: 12px; background: {{s.color}}"></span><span style="text-decoration: underline">{{s.label}}</span></button>
+                <span>{{s.count}}</span><span>{{s.conns}}</span><span>{{s.lvhv}}</span><span style="color: {{s.setColor}}">{{s.setText}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tab1}}" hint-placeholder-val="{{ false }}">
+          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 54px 60px 170px 54px 90px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>{{useHead}}</span><span>Name</span><span>Connector type</span><span>Pins</span><span>Points</span><span>{{whyHead}}</span></div>
+            <sc-for list="{{connRows}}" as="c" hint-placeholder-count="7">
+              <div style="display: grid; grid-template-columns: 54px 60px 170px 54px 90px 1fr; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec; align-items: center; background: {{c.bg}}; color: {{c.fg}}">
+                <span><sc-if value="{{c.showBox}}" hint-placeholder-val="{{ false }}"><input type="checkbox" checked="{{c.use}}" disabled="{{c.locked}}" onChange="{{c.toggle}}" aria-label="Use connector"></sc-if></span>
+                <span style="font-weight: {{c.weight}}">{{c.name}}</span><span>{{c.type}}</span><span>{{c.pins}}</span><span>{{c.range}}</span>
+                <span style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center">
+                  <sc-for list="{{c.chips}}" as="u" hint-placeholder-count="1"><span style="padding: 1px 8px; border-radius: 10px; color: #ffffff; background: {{u.color}}; font-size: 12px">{{u.label}}</span></sc-for>
+                  <span>{{c.why}}</span>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="color: #3d3d3d; line-height: 1.45">{{connNote}}</div>
+        </sc-if>
+
+        <sc-if value="{{tab2}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; gap: 12px; flex-grow: 1; min-height: 0">
+            <div style="width: 220px; border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto">
+              <div style="display: grid; grid-template-columns: 50px 1fr 70px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Name</span><span>Points</span><span>Segment</span></div>
+              <sc-for list="{{attRows}}" as="a" hint-placeholder-count="7">
+                <div style="display: grid; grid-template-columns: 50px 1fr 70px; padding: 6px 10px; border-bottom: 1px solid #ececec; background: {{a.bg}}; color: {{a.fg}}; font-weight: {{a.weight}}"><span>{{a.name}}</span><span>{{a.range}}</span><span>{{a.segs}}</span></div>
+              </sc-for>
+            </div>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+              <span style="font-weight: 600">Tester points 1–{{pointCount}}</span>
+              <div style="display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px">
+                <sc-for list="{{cells}}" as="c" hint-placeholder-count="64">
+                  <div style="height: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; line-height: 1.15; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}"><span style="font-weight: 600">{{c.con}}</span><span>{{c.n}}</span></div>
+                </sc-for>
+              </div>
+              <span style="color: #3d3d3d">{{attNote}}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tab3}}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{segMode}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 22px; align-items: center">
+              <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked="{{selLv}}" onChange="{{toggleSelLv}}"> Test low voltage</label>
+              <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked="{{selHv}}" onChange="{{toggleSelHv}}"> Test high voltage</label>
+              <span style="color: #8a4b00; font-weight: 600">{{lvhvWarn}}</span>
+            </div>
+          </sc-if>
+          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 50px 220px 130px 1fr 80px; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span></span><span>Setting</span><span>Value</span><span>Comes from</span><span></span></div>
+            <sc-for list="{{paramRows}}" as="p" hint-placeholder-count="8">
+              <div style="display: grid; grid-template-columns: 50px 220px 130px 1fr 80px; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec; align-items: center; background: {{p.bg}}; opacity: {{p.opacity}}">
+                <span style="font-size: 11px; color: #555555">{{p.grp}}</span>
+                <span style="font-weight: {{p.weight}}">{{p.name}}</span>
+                <input value="{{p.val}}" onChange="{{p.edit}}" disabled="{{p.locked}}" aria-label="{{p.name}}" style="font: inherit; padding: 3px 6px; border: 1px solid #b0b0b0; width: 120px; box-sizing: border-box; background: {{p.inBg}}">
+                <span style="color: {{p.srcColor}}">{{p.src}}</span>
+                <sc-if value="{{p.hasAct}}" hint-placeholder-val="{{ true }}"><button class="link" onClick="{{p.act}}">{{p.actLabel}}</button></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="color: #3d3d3d">{{paramNote}}</div>
+        </sc-if>
+
+        <sc-if value="{{tab4}}" hint-placeholder-val="{{ false }}">
+          <div style="flex-grow: 1; border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 8px 100px 90px 90px 1fr 130px 30px; column-gap: 8px; padding: 5px 8px 5px 0; border-bottom: 1px solid #d8d8d8; background: #f7f7f7; font-weight: 600"><span></span><span>Type</span><span>From</span><span>To</span><span>Parameters</span><span>{{segHead}}</span><span></span></div>
+            <sc-for list="{{instrRows}}" as="r" hint-placeholder-count="8">
+              <div style="display: grid; grid-template-columns: 8px 100px 90px 90px 1fr 130px 30px; column-gap: 8px; padding: 0 8px 0 0; border-bottom: 1px solid #f0f0f0; align-items: stretch">
+                <span style="background: {{r.color}}"></span><span style="padding: 4px 0">{{r.t}}</span><span style="padding: 4px 0">{{r.f}}</span><span style="padding: 4px 0">{{r.to}}</span><span style="padding: 4px 0">{{r.p}}</span><span style="padding: 4px 0; color: {{r.color}}; font-weight: 600">{{r.seg}}</span>
+                <button class="link" onClick="{{r.del}}" aria-label="Delete instruction" style="color: #6b6b6b; text-decoration: none">×</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{noInstr}}" hint-placeholder-val="{{ false }}"><div style="padding: 14px; color: #555555">No instructions in this segment yet. Click Add Instruction.</div></sc-if>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <select style="width: 120px; padding: 4px; font: inherit" aria-label="Instruction type"><option>WIRE</option></select>
+            <sc-if value="{{showAddTo}}" hint-placeholder-val="{{ false }}">
+              <span style="display: flex; gap: 6px; align-items: center">Add to
+                <sc-for list="{{addToOpts}}" as="o" hint-placeholder-count="2"><button onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+              </span>
+            </sc-if>
+            <button class="btn" onClick="{{addInstr}}" disabled="{{cantAdd}}">Add Instruction</button>
+            <span style="color: #555555">{{addHint}}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tab5}}" hint-placeholder-val="{{ false }}">
+          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 70px 1fr 170px; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Net</span><span>Points</span><span>Segment</span></div>
+            <sc-for list="{{netRows}}" as="n" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: 70px 1fr 170px; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec"><span>{{n.name}}</span><span>{{n.pins}}</span><span style="color: {{n.color}}; font-weight: 600">{{n.seg}}</span></div>
+            </sc-for>
+          </div>
+          <div style="color: #3d3d3d; line-height: 1.45">{{netNote}}</div>
+        </sc-if>
+
+        <sc-if value="{{tab6}}" hint-placeholder-val="{{ false }}">
+          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
+            <div style="display: grid; grid-template-columns: 80px 90px 200px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Pin</span><span>Tester point</span><span>Label</span><span>Used by</span></div>
+            <sc-for list="{{labelRows}}" as="l" hint-placeholder-count="10">
+              <div style="display: grid; grid-template-columns: 80px 90px 200px 1fr; gap: 6px; padding: 4px 10px; border-bottom: 1px solid #ececec; align-items: center"><span>{{l.pin}}</span><span>{{l.pt}}</span><input value="{{l.label}}" onChange="{{l.edit}}" placeholder="No label" aria-label="Label" style="font: inherit; padding: 2px 6px; border: 1px solid #b0b0b0; width: 180px"><span>{{l.used}}</span></div>
+            </sc-for>
+          </div>
+          <div style="color: #3d3d3d">A label belongs to the pin, so it's the same in every segment.</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 10px; padding: 10px">
+    <button class="btn" onClick="{{goStart}}">Done</button>
+    <button class="btn">Save</button>
+    <button class="btn">Save As</button>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{showBottomAdd}}" hint-placeholder-val="{{ false }}">
+      <button class="btn" onClick="{{openAdd}}" style="background: #e8f1fb; border-color: #0b5cad; color: #0b4a8c; font-weight: 600">+ Add Segment…</button>
+    </sc-if>
+    <button class="btn">Help</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{dlgAdd}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
+    <div style="width: 560px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
+      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Add Segment</div>
+      <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
+        <label style="display: flex; flex-direction: column; gap: 5px"><span style="font-weight: 600">Segment name</span><input value="{{addName}}" onChange="{{setAddName}}" style="padding: 5px 8px; font: inherit; border: 1px solid #8a8a8a"></label>
+        <fieldset style="border: 1px solid #d0d0d0; padding: 8px 12px; margin: 0; display: flex; flex-direction: column; gap: 6px">
+          <legend style="font-weight: 600; padding: 0 4px">Start with</legend>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startEmpty}}" onChange="{{pickEmpty}}"> Empty: I'll add instructions</label>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startCopy}}" onChange="{{pickCopy}}"> A copy of {{copyName}}</label>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startConns}}" onChange="{{pickConns}}"> Connectors not used by any segment ({{freeConns}})</label>
+        </fieldset>
+        <fieldset style="border: 1px solid #d0d0d0; padding: 8px 12px; margin: 0; display: flex; flex-direction: column; gap: 6px">
+          <legend style="font-weight: 600; padding: 0 4px">Settings</legend>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="se" checked="{{setTest}}" onChange="{{pickSetTest}}"> Same as the test (recommended)</label>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="se" checked="{{setCopy}}" onChange="{{pickSetCopy}}"> Same as {{copyName}}</label>
+        </fieldset>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
+        <button class="pri" onClick="{{doAdd}}">Add Segment</button>
+        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{dlgProps}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
+    <div style="width: 760px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
+      <div style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #d0d0d0"><span style="width: 14px; height: 14px; background: {{pColor}}"></span>Segment Properties - {{pLabel}}</div>
+      <div style="height: 6px; background: {{pColor}}"></div>
+      <div style="display: flex; gap: 2px; padding: 8px 16px 0 16px">
+        <sc-for list="{{pTabs}}" as="t" hint-placeholder-count="3"><button onClick="{{t.click}}" style="{{t.style}}">{{t.label}}</button></sc-for>
+      </div>
+      <div style="margin: 0 16px; border: 1px solid #c4c4c4; padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 360px; box-sizing: border-box">
+        <sc-if value="{{pGen}}" hint-placeholder-val="{{ true }}">
+          <label style="display: flex; flex-direction: column; gap: 5px; max-width: 360px"><span style="font-weight: 600">Name</span><input value="{{pName}}" onChange="{{pSetName}}" style="padding: 5px 8px; font: inherit; border: 1px solid #8a8a8a"></label>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Colour</span>
+            <div style="display: flex; gap: 6px">
+              <sc-for list="{{palette}}" as="c" hint-placeholder-count="8"><button onClick="{{c.pick}}" aria-label="Colour" style="width: 30px; height: 26px; background: {{c.color}}; border: {{c.border}}; cursor: pointer"></button></sc-for>
+            </div>
+          </div>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="checkbox" checked="{{pOn}}" onChange="{{pToggleOn}}"> Segment is on (tested)</label>
+          <div style="color: #3d3d3d">{{pSummary}}</div>
+        </sc-if>
+        <sc-if value="{{pPar}}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <sc-for list="{{pCols}}" as="col" hint-placeholder-count="2">
+              <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column">
+                <label style="display: flex; gap: 8px; align-items: center; padding: 6px 10px; background: #f0f0f0; border-bottom: 1px solid #d0d0d0; font-weight: 600"><input type="checkbox" checked="{{col.on}}" onChange="{{col.toggle}}"> {{col.title}}<span style="margin-left: auto; font-weight: 400; font-size: 12px; color: {{col.srcColor}}">{{col.src}}</span></label>
+                <sc-if value="{{col.warn}}" hint-placeholder-val="{{ false }}"><div style="padding: 6px 10px; background: #fff4e2; border-bottom: 1px solid #e6c48a; font-size: 12px; line-height: 1.4">{{col.warnText}}</div></sc-if>
+                <sc-for list="{{col.rows}}" as="p" hint-placeholder-count="4">
+                  <div style="display: grid; grid-template-columns: 22px 1fr 104px; gap: 6px; padding: 5px 10px; border-bottom: 1px solid #efefef; align-items: center; background: {{p.bg}}; opacity: {{p.opacity}}">
+                    <input type="checkbox" checked="{{p.over}}" onChange="{{p.toggleOver}}" aria-label="Change for this segment">
+                    <span style="display: flex; flex-direction: column"><span style="font-weight: {{p.weight}}">{{p.name}}</span><span style="font-size: 11px; color: {{p.srcColor}}">{{p.src}}</span></span>
+                    <input value="{{p.val}}" onChange="{{p.edit}}" disabled="{{p.locked}}" aria-label="{{p.name}}" style="font: inherit; padding: 3px 6px; border: 1px solid #b0b0b0; width: 100px; box-sizing: border-box; background: {{p.inBg}}">
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <span style="color: #3d3d3d">Tick a parameter to change it for this segment. Unticked ones follow the test. Same list as tab 3.</span>
+        </sc-if>
+        <sc-if value="{{pPio}}" hint-placeholder-val="{{ false }}">
+          <label style="display: flex; flex-direction: column; gap: 5px"><span style="font-weight: 600">Operator prompt (shown before this segment runs)</span><textarea rows="3" value="{{pPrompt}}" onChange="{{pSetPrompt}}" style="font: inherit; padding: 5px 8px; border: 1px solid #8a8a8a; resize: none"></textarea></label>
+          <div style="display: flex; gap: 10px; align-items: center"><div style="width: 110px; height: 66px; border: 1px dashed #8a8a8a; background: #f4f4f4; display: flex; align-items: center; justify-content: center; color: #555555">[picture]</div><button class="link">Choose picture…</button></div>
+          <label style="display: flex; gap: 8px; align-items: center">I/O at segment start <select value="{{pIo}}" onChange="{{pSetIo}}" style="font: inherit; padding: 3px 4px"><option>None</option><option>Set outputs…</option><option>Wait for input…</option></select></label>
+        </sc-if>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px">
+        <button class="pri" onClick="{{closeDlg}}">OK</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{dlgDelete}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
+    <div style="width: 440px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
+      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Delete segment</div>
+      <div style="padding: 16px 20px; line-height: 1.5">{{deleteText}}</div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
+        <button class="pri" style="background: #a3221b; border-color: #7d1913" onClick="{{doDelete}}">Delete</button>
+        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{dlgMp}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
+    <div style="width: 660px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
+      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Create Multi-Part Test</div>
+      <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; gap: 10px; align-items: center"><span style="font-weight: 600">How many parts does the fixture hold?</span>
+          <sc-for list="{{mpChoices}}" as="m" hint-placeholder-count="3"><button onClick="{{m.pick}}" style="{{m.style}}">{{m.n}}</button></sc-for>
+        </div>
+        <div>Wiring for one part: <strong>Sensor Lead A-112</strong> (J1 8-pin, J2 12-pin)</div>
+        <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; max-height: 220px; overflow-y: auto">
+          <div style="display: grid; grid-template-columns: 100px 1fr 1fr; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Part</span><span>J1 plugs into</span><span>J2 plugs into</span></div>
+          <sc-for list="{{mpRows}}" as="r" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 100px 1fr 1fr; padding: 6px 10px; border-bottom: 1px solid #ececec"><span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; background: {{r.color}}"></span>{{r.part}}</span><span>{{r.a}}</span><span>{{r.b}}</span></div>
+          </sc-for>
+        </div>
+        <div style="background: #eef5fc; border: 1px solid #b9d4ef; padding: 9px 12px; line-height: 1.45">This makes <strong>one normal test</strong> with {{mpN}} parts. They don't share pins, so they're tested together in one pass, and each part gets its own pass/fail, serial number and report.</div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
+        <button class="pri" onClick="{{doMp}}">Create Test</button>
+        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</template>
+<div id="wrap"><div id="root"></div></div>
+<script>
+class DCLogic{constructor(p){this.props=p||{};this.state={};}setState(o){Object.assign(this.state,o);scheduleRender();}}
+
+const PAL = ['#2f6db5', '#a8590f', '#23774a', '#7b4fb0', '#b0322a', '#17707f', '#8a5a2b', '#5f5f5f'];
+const PARAMS = [
+  { k: 'cr', grp: 'LV', name: 'Connection resistance', val: '2.0 Ω' },
+  { k: 'ir', grp: 'LV', name: 'Insulation resistance', val: '1000 MΩ' },
+  { k: 'ct', grp: 'LV', name: 'Component tolerance', val: '±5 %' },
+  { k: 'dw', grp: 'HV', name: 'Dielectric withstand', val: '1000 VDC' },
+  { k: 'dd', grp: 'HV', name: 'DW dwell time', val: '1.0 s' },
+  { k: 'dc', grp: 'HV', name: 'DW max current', val: '1.5 mA' },
+  { k: 'iv', grp: 'HV', name: 'Insulation test voltage', val: '500 VDC' },
+  { k: 'irr', grp: 'HV', name: 'HV insulation resistance', val: '500 MΩ' }
+];
+function mkFixture(list) {
+  let p = 1;
+  return list.map((c) => { const o = { name: c[0], type: c[1], pins: c[2], start: p, end: p + c[2] - 1 }; p += c[2]; return o; });
+}
+function demoFixture() {
+  return mkFixture([['J1', 'Molex 39-01-2080', 8], ['J2', 'Deutsch DT06-12S', 12], ['J5', 'Deutsch DT06-4S', 4], ['J7', 'TE 1-1564337', 16], ['J8', 'Molex 43025-0400', 4], ['J9', 'TE 1-1564337', 16], ['J10', 'Molex 39-01-2040', 4]]);
+}
+function I(t, f, to, p) { return { t: t, f: f, to: to, p: p || '' }; }
+function seg(id, name, color, instr, extra) {
+  return { id: id, name: name, color: color, on: true, lv: true, hv: true, instr: instr, extra: extra || [], ov: {}, prompt: '', io: 'None' };
+}
+function demoSegs() {
+  const s1 = seg(1, 'Main harness', PAL[0], [I('WIRE', 'J1-1', 'J1-2'), I('WIRE', 'J1-4', 'J2-10'), I('WIRE', 'J2-1', 'J5-1'), I('WIRE', 'J2-2', 'J5-2'), I('DIODE', 'J2-11', 'J2-12', 'Anode J2-11'), I('RESISTOR', 'J1-6', 'J5-4', '4.7 kΩ ±5%')]);
+  const s2 = seg(2, 'Door harness', PAL[1], [I('WIRE', 'J7-1', 'J9-1'), I('WIRE', 'J7-2', 'J9-2'), I('WIRE', 'J7-3', 'J8-4'), I('WIRE', 'J7-5', 'J9-5'), I('RESISTOR', 'J8-1', 'J8-2', '1 kΩ ±5%')]);
+  s2.ov = { dw: '1500 VDC' };
+  const s3 = seg(3, 'Switch S1 ON', PAL[2], [I('WIRE', 'J2-1', 'J5-1'), I('WIRE', 'J2-2', 'J5-2'), I('WIRE', 'J2-7', 'J2-3', 'Closed by S1'), I('WIRE', 'J2-5', 'J2-8', 'Closed by S1')]);
+  s3.prompt = 'Press and hold S1, then press Start.';
+  return [s1, s2, s3];
+}
+function connOf(pin) { return pin.split('-')[0]; }
+function segConns(s) {
+  const set = [];
+  s.instr.forEach((i) => { [connOf(i.f), connOf(i.to)].forEach((c) => { if (set.indexOf(c) < 0) set.push(c); }); });
+  s.extra.forEach((c) => { if (set.indexOf(c) < 0) set.push(c); });
+  return set;
+}
+function instrConns(s) {
+  const set = [];
+  s.instr.forEach((i) => { [connOf(i.f), connOf(i.to)].forEach((c) => { if (set.indexOf(c) < 0) set.push(c); }); });
+  return set;
+}
+function netsOf(s) {
+  const parent = {};
+  const find = (x) => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  s.instr.forEach((i) => {
+    if (i.t !== 'WIRE') { return; }
+    [i.f, i.to].forEach((p) => { if (parent[p] === undefined) { parent[p] = p; } });
+    const a = find(i.f); const b = find(i.to); if (a !== b) { parent[a] = b; }
+  });
+  const groups = {};
+  Object.keys(parent).forEach((p) => { const r = find(p); (groups[r] = groups[r] || []).push(p); });
+  return Object.keys(groups).map((k) => groups[k].sort());
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'start', dlg: null, fixture: demoFixture(), segs: [], shown: [], addTo: null, sel: 'whole', tab: 'ov', testName: '', menuId: null, propsId: null, propsTab: 'gen', delId: null, addName: '', addStart: 'empty', addSet: 'test', mpN: 4, testVals: {}, labels: { 'J7-1': 'DOOR LOCK +', 'J7-2': 'DOOR LOCK -', 'J7-3': 'WINDOW UP', 'J8-1': 'SPEAKER +', 'J9-1': 'MIRROR HEAT', 'J1-1': 'BATT +', 'J1-2': 'IGN', 'J2-1': 'S1 COM', 'J2-3': 'S1 NO' } };
+  }
+  upSeg(id, patch) {
+    this.setState({ segs: this.state.segs.map((s) => (s.id === id ? Object.assign({}, s, patch) : s)) });
+  }
+  getSeg(id) { return this.state.segs.find((s) => s.id === id); }
+  testVal(k) { const v = this.state.testVals[k]; return v !== undefined ? v : PARAMS.find((p) => p.k === k).val; }
+  label(s) { return this.state.segs.indexOf(s) + 1 + ' · ' + s.name; }
+  nextColor() { const used = this.state.segs.map((s) => s.color); const c = PAL.find((p) => used.indexOf(p) < 0); return c || PAL[this.state.segs.length % PAL.length]; }
+
+  renderVals() {
+    const st = this.state;
+    const segs = st.segs;
+    const multi = segs.length > 1;
+    const shownIds = st.shown.filter((id) => segs.some((s) => s.id === id));
+    const isShown = (s) => shownIds.indexOf(s.id) >= 0;
+    const shownSegs = segs.filter(isShown);
+    const selSeg = multi && shownSegs.length === 1 ? shownSegs[0] : null;
+    const segMode = !!selSeg;
+    const wholeMode = multi && shownSegs.length === segs.length;
+    const severalMode = multi && !segMode && !wholeMode;
+    const self = this;
+
+    const stop = (e) => { e.stopPropagation(); };
+    const goStart = () => this.setState({ mode: 'start', dlg: null, menuId: null });
+    const closeDlg = () => this.setState({ dlg: null });
+    const selWhole = () => this.setState({ sel: 'whole', shown: segs.map((s) => s.id), tab: 'ov', menuId: null });
+
+    // run groups
+    const enabled = segs.filter((s) => s.on);
+    const groups = [];
+    enabled.forEach((s) => {
+      const cs = segConns(s);
+      const g = groups.find((gr) => gr.every((o) => segConns(o).every((c) => cs.indexOf(c) < 0)));
+      if (g) { g.push(s); } else { groups.push([s]); }
+    });
+    const groupsOut = groups.map((g, i) => ({
+      title: 'Step ' + (i + 1) + (g.length > 1 ? ' · tested together' : ' · on its own'),
+      items: g.map((s) => ({ color: s.color, label: self.label(s) })),
+      note: g.length > 1 ? 'No shared pins, so one pass covers them all' : (groups.length > 1 && i > 0 ? 'Shares pins with an earlier step, so it runs separately' : 'Runs in one pass'),
+      bg: g.length > 1 ? '#eef5fc' : '#fafafa', border: g.length > 1 ? '#9fc2e6' : '#c4c4c4'
+    }));
+    const offCount = segs.length - enabled.length;
+    let runSummary = groups.map((g) => g.map((s) => segs.indexOf(s) + 1).join(' + ')).join(', then ');
+    runSummary = groups.length ? 'Runs: ' + runSummary + (offCount ? ' · ' + offCount + ' off' : '') : 'All segments are off';
+
+    // segment rows
+    const segRows = segs.map((s, idx) => {
+      const shownHere = multi && !wholeMode && isShown(s);
+      const selected = shownHere;
+      const changed = Object.keys(s.ov).length;
+      const tags = [];
+      if (!s.lv && s.hv) { tags.push('HV only'); }
+      if (s.lv && !s.hv) { tags.push('LV only'); }
+      if (!s.lv && !s.hv) { tags.push('LV and HV off'); }
+      if (changed) { tags.push(changed + ' setting' + (changed > 1 ? 's' : '') + ' changed'); }
+      if (s.prompt) { tags.push('prompt'); }
+      if (!s.on) { tags.unshift('OFF'); }
+      return {
+        label: (idx + 1) + ' · ' + s.name, color: s.color, on: s.on, shown: isShown(s), weight: selected ? 600 : 400,
+        sub: s.instr.length + ' instructions' + (tags.length ? ' · ' + tags.join(' · ') : ''),
+        count: s.instr.length, conns: segConns(s).join(', ') || 'none',
+        lvhv: (s.lv ? 'LV' : '–') + ' / ' + (s.hv ? 'HV' : '–'),
+        setText: (changed ? Object.keys(s.ov).map((k) => PARAMS.find((p) => p.k === k).name + ' ' + s.ov[k]).join(', ') : 'Same as test') + (s.prompt ? ' · prompt' : ''),
+        setColor: changed ? '#8a4b00' : '#3d3d3d',
+        rowStyle: 'display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px 8px ' + (selected ? '7px' : '12px') + '; border-bottom: 1px solid #ececec; cursor: pointer; ' + (selected ? 'background: ' + s.color + '22; border-left: 5px solid ' + s.color + ';' : 'background: #ffffff;'),
+        dotsStyle: 'width: 26px; height: 24px; padding: 0; font: inherit; font-size: 16px; line-height: 1; border-radius: 3px; cursor: pointer; color: #333333; flex-shrink: 0; ' + (st.menuId === s.id ? 'border: 1px solid #6e6e6e; background: #ffffff;' : 'border: 1px solid transparent; background: transparent;'),
+        select: () => self.setState({ sel: s.id, shown: [s.id], tab: st.tab === 'ov' ? 4 : st.tab, menuId: null }),
+        toggleOn: () => self.upSeg(s.id, { on: !s.on }),
+        toggleShown: () => { const arr = isShown(s) ? shownIds.filter((id) => id !== s.id) : shownIds.concat([s.id]); self.setState({ shown: arr, sel: isShown(s) ? (arr[0] || 'whole') : s.id, menuId: null }); },
+        openMenu: (e) => { e.stopPropagation(); self.setState({ menuId: st.menuId === s.id ? null : s.id }); }
+      };
+    });
+    const menuIdx = segs.findIndex((s) => s.id === st.menuId);
+    const menuTop = (150 + menuIdx * 52) + 'px';
+    const moveSeg = (dir) => {
+      const arr = segs.slice(); const i = menuIdx; const j = i + dir;
+      if (j < 0 || j >= arr.length) { self.setState({ menuId: null }); return; }
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t; self.setState({ segs: arr, menuId: null });
+    };
+
+    // tabs
+    const tabDefs = [];
+    if (wholeMode) { tabDefs.push(['ov', 'Overview']); }
+    [[1, '1. Define Connectors'], [2, '2. Attach Connectors'], [3, '3. Set Test Defaults'], [4, '4. Define Instructions'], [5, '5. View Nets'], [6, '6. Label Points']].forEach((t) => tabDefs.push(t));
+    let tab = st.tab;
+    if (tab === 'ov' && !wholeMode) { tab = 4; }
+    const tabs = tabDefs.map((t) => {
+      const act = t[0] === tab;
+      const col = segMode && act ? selSeg.color : '#c4c4c4';
+      return { label: t[1], click: () => self.setState({ tab: t[0], menuId: null }), style: 'padding: 7px 9px; font: inherit; font-size: 12px; cursor: pointer; border: 1px solid ' + col + '; border-bottom: ' + (act ? '1px solid #ffffff' : 'none') + '; background: ' + (act ? (segMode ? selSeg.color + '22' : '#ffffff') : '#e4e4e4') + '; font-weight: ' + (act ? 600 : 400) + '; color: #1a1a1a' };
+    });
+    const frameStyle = 'flex-grow: 1; min-height: 0; background: #ffffff; display: flex; flex-direction: column; padding: 10px; gap: 10px; box-sizing: border-box; ' + (segMode ? 'border: 4px solid ' + selSeg.color + ';' : 'border: 1px solid #c4c4c4;');
+
+    // connectors tab
+    const scope = multi ? shownSegs : segs;
+    const users = (cname) => segs.filter((s) => segConns(s).indexOf(cname) >= 0);
+    const connRows = st.fixture.map((c) => {
+      const us = users(c.name);
+      if (segMode) {
+        const locked = instrConns(selSeg).indexOf(c.name) >= 0;
+        const use = locked || selSeg.extra.indexOf(c.name) >= 0;
+        const others = us.filter((s) => s.id !== selSeg.id);
+        return {
+          showBox: true, use: use, locked: locked, name: c.name, type: c.type, pins: c.pins, range: c.start + '–' + c.end,
+          chips: [], why: locked ? 'Used by this segment\'s instructions' : (use ? 'Added by hand: checked for shorts' : (others.length ? 'In ' + others.map((s) => self.label(s)).join(', ') : 'Not in any segment')),
+          bg: use ? selSeg.color + '18' : '#ffffff', fg: use ? '#1a1a1a' : '#555555', weight: use ? 600 : 400,
+          toggle: () => { if (locked) { return; } const ex = selSeg.extra.slice(); const k = ex.indexOf(c.name); if (k >= 0) { ex.splice(k, 1); } else { ex.push(c.name); } self.upSeg(selSeg.id, { extra: ex }); }
+        };
+      }
+      return {
+        showBox: false, use: false, locked: true, name: c.name, type: c.type, pins: c.pins, range: c.start + '–' + c.end,
+        chips: multi ? us.filter(isShown).map((s) => ({ color: s.color, label: (segs.indexOf(s) + 1) + ' ' + s.name })) : [],
+        why: multi && !us.length ? 'Not in any segment, so not tested' : (severalMode && !us.some(isShown) ? 'Only in hidden segments' : ''),
+        bg: multi && !us.length ? '#fff8eb' : '#ffffff', fg: multi && !us.length ? '#7a4300' : (severalMode && !us.some(isShown) ? '#8a8a8a' : '#1a1a1a'), weight: 400, toggle: () => {}
+      };
+    });
+
+    // attach tab
+    const attRows = st.fixture.map((c) => {
+      const us = users(c.name); const su = us.filter(isShown); const focus = multi && !wholeMode;
+      const inSel = focus && su.length > 0;
+      return { name: c.name, range: c.start + '–' + c.end, segs: us.length ? us.map((s) => segs.indexOf(s) + 1).join(', ') : 'none', bg: inSel ? su[0].color + '22' : '#ffffff', fg: !us.length && multi ? '#7a4300' : (focus && !inSel ? '#666666' : '#1a1a1a'), weight: inSel ? 600 : 400 };
+    });
+    const cells = [];
+    st.fixture.forEach((c) => {
+      const us = users(c.name);
+      for (let n = c.start; n <= c.end; n++) {
+        let bg = '#e6e6e6'; let fg = '#555555'; let bd = '#c4c4c4';
+        const su = multi ? us.filter(isShown) : us;
+        if (!us.length && multi) { bg = '#fff0d2'; fg = '#7a4300'; bd = '#e6c48a'; }
+        else if (su.length === 1) { bg = su[0].color; fg = '#ffffff'; bd = su[0].color; }
+        else if (su.length > 1) { bg = 'linear-gradient(135deg, ' + su[0].color + ' 50%, ' + su[1].color + ' 50%)'; fg = '#ffffff'; bd = '#1a1a1a'; }
+        cells.push({ n: n, con: n === c.start ? c.name : '', bg: bg, fg: fg, bd: bd });
+      }
+    });
+    const pointCount = st.fixture.length ? st.fixture[st.fixture.length - 1].end : 0;
+
+    // settings
+    const paramRows = PARAMS.map((p) => {
+      const tv = self.testVal(p.k);
+      if (!segMode) {
+        const diffs = severalMode ? shownSegs.filter((s) => s.ov[p.k] !== undefined).map((s) => (segs.indexOf(s) + 1) + ' · ' + s.name + ': ' + s.ov[p.k]) : [];
+        return { grp: p.grp, name: p.name, val: tv, locked: false, src: diffs.length ? 'Changed in ' + diffs.join('; ') : (severalMode ? 'Same in every segment shown' : (multi ? 'Test default' : '')), srcColor: diffs.length ? '#8a4b00' : '#555555', bg: '#ffffff', weight: 400, inBg: '#ffffff', opacity: 1, hasAct: false, actLabel: '', act: () => {},
+          edit: (e) => { const tvs = Object.assign({}, st.testVals); tvs[p.k] = e.target.value; self.setState({ testVals: tvs }); } };
+      }
+      const phaseOff = (p.grp === 'LV' && !selSeg.lv) || (p.grp === 'HV' && !selSeg.hv);
+      const over = selSeg.ov[p.k] !== undefined;
+      return {
+        grp: p.grp, name: p.name, val: over ? selSeg.ov[p.k] : tv, locked: !over || phaseOff,
+        src: over ? 'Changed for this segment (test: ' + tv + ')' : 'Same as test', srcColor: over ? '#8a4b00' : '#555555',
+        bg: over ? '#fff4e2' : '#ffffff', weight: over ? 600 : 400, inBg: over ? '#ffffff' : '#f4f4f4', opacity: phaseOff ? 0.45 : 1,
+        hasAct: !phaseOff, actLabel: over ? 'Reset' : 'Change',
+        act: () => { const ov = Object.assign({}, selSeg.ov); if (over) { delete ov[p.k]; } else { ov[p.k] = tv; } self.upSeg(selSeg.id, { ov: ov }); },
+        edit: (e) => { const ov = Object.assign({}, selSeg.ov); ov[p.k] = e.target.value; self.upSeg(selSeg.id, { ov: ov }); }
+      };
+    });
+    const lvhvWarn = segMode ? (!selSeg.lv && !selSeg.hv ? 'Nothing is tested in this segment unless it has device steps' : (!selSeg.lv ? 'HV only: continuity isn\'t checked; the report says "HV only"' : (!selSeg.hv ? 'LV only: its nets are still held at the HV sink while other segments are hipotted' : ''))) : '';
+
+    // instructions
+    const instrRows = [];
+    scope.forEach((s) => {
+      s.instr.forEach((i, k) => instrRows.push({ t: i.t, f: i.f, to: i.to, p: i.p, color: multi ? s.color : '#ffffff', seg: multi ? (segs.indexOf(s) + 1) + ' · ' + s.name : '',
+        del: () => { const ins = s.instr.slice(); ins.splice(k, 1); self.upSeg(s.id, { instr: ins }); } }));
+    });
+    const addToSeg = severalMode ? (shownSegs.find((s) => s.id === st.addTo) || shownSegs.find((s) => s.id === st.sel) || shownSegs[0] || null) : null;
+    const target = segMode ? selSeg : (severalMode ? addToSeg : (!multi ? segs[0] : null));
+    const addInstr = () => {
+      if (!target) { return; }
+      let conn = segConns(target)[0];
+      if (!conn) { const free = st.fixture.find((c) => !users(c.name).length) || st.fixture[0]; conn = free.name; }
+      const fx = st.fixture.find((c) => c.name === conn);
+      const used = {}; segs.forEach((s) => s.instr.forEach((i) => { used[i.f] = 1; used[i.to] = 1; }));
+      const freePins = []; for (let n = 1; n <= fx.pins; n++) { if (!used[conn + '-' + n]) { freePins.push(conn + '-' + n); } }
+      const a = freePins[0] || conn + '-1'; const b = freePins[1] || conn + '-2';
+      self.upSeg(target.id, { instr: target.instr.concat([I('WIRE', a, b)]) });
+    };
+
+    // nets
+    const netRows = [];
+    let nn = 1;
+    scope.forEach((s) => netsOf(s).forEach((n) => netRows.push({ name: 'N' + (nn++), pins: n.join(', '), seg: multi ? (segs.indexOf(s) + 1) + ' · ' + s.name : '', color: s.color })));
+
+    // labels
+    const labelConns = multi && !wholeMode ? st.fixture.map((c) => c.name).filter((cn) => shownSegs.some((s) => segConns(s).indexOf(cn) >= 0)) : st.fixture.map((c) => c.name);
+    const labelRows = [];
+    labelConns.forEach((cn) => {
+      const fx = st.fixture.find((c) => c.name === cn); if (!fx) { return; }
+      const us = users(cn);
+      for (let n = 1; n <= fx.pins && labelRows.length < 60; n++) {
+        const pin = cn + '-' + n;
+        labelRows.push({ pin: pin, pt: fx.start + n - 1, label: st.labels[pin] || '', used: us.map((s) => (segs.indexOf(s) + 1) + ' · ' + s.name).join(', ') || (multi ? 'none' : ''),
+          edit: (e) => { const lb = Object.assign({}, st.labels); lb[pin] = e.target.value; self.setState({ labels: lb }); } });
+      }
+    });
+
+    // add dialog
+    const copySrc = selSeg || segs[segs.length - 1];
+    const freeList = st.fixture.filter((c) => !users(c.name).length).map((c) => c.name);
+    const doAdd = () => {
+      const id = Math.max.apply(null, segs.map((s) => s.id).concat([0])) + 1;
+      let instr = []; let extra = [];
+      if (st.addStart === 'copy' && copySrc) { instr = copySrc.instr.map((i) => Object.assign({}, i)); }
+      if (st.addStart === 'conns') { extra = freeList.slice(); }
+      const ns = seg(id, st.addName || ('Segment ' + (segs.length + 1)), self.nextColor(), instr, extra);
+      if (st.addSet === 'copy' && copySrc) { ns.ov = Object.assign({}, copySrc.ov); }
+      let list = segs;
+      if (segs.length === 1 && segs[0].name === 'Main harness') { list = [Object.assign({}, segs[0], { name: 'Segment 1' })]; }
+      self.setState({ segs: list.concat([ns]), sel: id, shown: [id], tab: 4, dlg: null, menuId: null });
+    };
+
+    // props dialog
+    const ps = st.propsId ? this.getSeg(st.propsId) : null;
+    const pTabs = [['gen', 'General'], ['par', 'Test Parameters'], ['pio', 'Prompt & I/O']].map((t) => {
+      const act = st.propsTab === t[0];
+      return { label: t[1], click: () => self.setState({ propsTab: t[0] }), style: 'padding: 6px 14px; font: inherit; cursor: pointer; border: 1px solid #c4c4c4; border-bottom: ' + (act ? '1px solid #ffffff' : 'none') + '; background: ' + (act ? '#ffffff' : '#e4e4e4') + '; font-weight: ' + (act ? 600 : 400) + '; color: #1a1a1a' };
+    });
+    const pCols = ps ? ['LV', 'HV'].map((g) => {
+      const on = g === 'LV' ? ps.lv : ps.hv;
+      return {
+        title: g === 'LV' ? 'Test low voltage' : 'Test high voltage', on: on,
+        src: on ? 'Same as test' : 'Changed (test: on)', srcColor: on ? '#555555' : '#8a4b00',
+        toggle: () => self.upSeg(ps.id, g === 'LV' ? { lv: !ps.lv } : { hv: !ps.hv }),
+        warn: !on, warnText: g === 'LV' ? 'This segment is HV only. Continuity isn\'t checked, and the report says "HV only". Needs edit permission.' : 'No hipot for this segment. Its nets are still held at the HV sink while other segments are hipotted.',
+        rows: PARAMS.filter((p) => p.grp === g).map((p) => {
+          const tv = self.testVal(p.k); const over = ps.ov[p.k] !== undefined;
+          return { name: p.name, over: over, val: over ? ps.ov[p.k] : tv, locked: !over || !on, src: over ? 'Changed (test: ' + tv + ')' : 'Same as test', srcColor: over ? '#8a4b00' : '#555555', bg: over ? '#fff4e2' : '#ffffff', weight: over ? 600 : 400, inBg: over ? '#ffffff' : '#f4f4f4', opacity: on ? 1 : 0.45,
+            toggleOver: () => { const ov = Object.assign({}, ps.ov); if (over) { delete ov[p.k]; } else { ov[p.k] = tv; } self.upSeg(ps.id, { ov: ov }); },
+            edit: (e) => { const ov = Object.assign({}, ps.ov); ov[p.k] = e.target.value; self.upSeg(ps.id, { ov: ov }); } };
+        })
+      };
+    }) : [];
+
+    // multipart
+    const mpRows = [];
+    for (let k = 1; k <= st.mpN; k++) { mpRows.push({ part: 'Part ' + k, a: 'J' + (2 * k - 1), b: 'J' + (2 * k), color: PAL[(k - 1) % PAL.length] }); }
+    const doMp = () => {
+      const fx = []; const ss = [];
+      for (let k = 1; k <= st.mpN; k++) {
+        const a = 'J' + (2 * k - 1); const b = 'J' + (2 * k);
+        fx.push([a, 'Molex 39-01-2080', 8]); fx.push([b, 'Deutsch DT06-12S', 12]);
+        ss.push(seg(k, 'Part ' + k, PAL[(k - 1) % PAL.length], [I('WIRE', a + '-1', b + '-1'), I('WIRE', a + '-2', b + '-2'), I('WIRE', a + '-3', b + '-5'), I('RESISTOR', a + '-6', b + '-9', '10 kΩ ±1%')]));
+      }
+      self.setState({ mode: 'editor', dlg: null, fixture: mkFixture(fx), segs: ss, sel: 'whole', tab: 'ov', testName: 'Sensor Lead A-112 (' + st.mpN + '-up)', menuId: null, testVals: {}, shown: ss.map((s) => s.id) });
+    };
+
+    return {
+      stop: stop, goStart: goStart, closeDlg: closeDlg, selWhole: selWhole,
+      isStart: st.mode === 'start', isEditor: st.mode === 'editor',
+      openDemo: () => self.setState({ mode: 'editor', fixture: demoFixture(), segs: demoSegs(), shown: [1, 2, 3], sel: 'whole', tab: 'ov', testName: 'Door Module Harness', dlg: null, menuId: null, testVals: {} }),
+      newTest: () => { const s = demoSegs()[0]; self.setState({ mode: 'editor', fixture: demoFixture(), segs: [s], shown: [s.id], sel: s.id, tab: 4, testName: 'My Test', dlg: null, menuId: null, testVals: {} }); },
+      openMP: () => self.setState({ dlg: 'mp' }),
+      testName: st.testName, showRail: multi, showBottomAdd: !multi, runSummary: runSummary,
+      wholeStyle: 'display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px 9px ' + (wholeMode ? '7px' : '12px') + '; border: none; border-top: 1px solid #e2e2e2; border-bottom: 1px solid #ececec; font: inherit; cursor: pointer; text-align: left; color: #1a1a1a; ' + (wholeMode ? 'background: #d6e8f8; border-left: 5px solid #0b5cad;' : 'background: #ffffff;'),
+      segRows: segRows, menuOpen: st.menuId !== null && menuIdx >= 0, menuTop: menuTop,
+      menuEdit: () => self.setState({ dlg: 'props', propsId: st.menuId, propsTab: 'gen', menuId: null }),
+      menuDup: () => { const s = self.getSeg(st.menuId); const id = Math.max.apply(null, segs.map((x) => x.id)) + 1; const c = Object.assign({}, s, { id: id, name: s.name + ' (copy)', color: self.nextColor(), instr: s.instr.map((i) => Object.assign({}, i)), extra: s.extra.slice(), ov: Object.assign({}, s.ov) }); const arr = segs.slice(); arr.splice(menuIdx + 1, 0, c); self.setState({ segs: arr, menuId: null, sel: id, shown: [id] }); },
+      menuUp: () => moveSeg(-1), menuDown: () => moveSeg(1),
+      menuDelete: () => self.setState({ dlg: 'delete', delId: st.menuId, menuId: null }),
+      openAdd: () => self.setState({ dlg: 'add', addName: 'Segment ' + (segs.length + 1), addStart: 'empty', addSet: 'test', menuId: null }),
+      tabs: tabs, frameStyle: frameStyle,
+      showSegBanner: segMode, selColor: segMode ? selSeg.color : '#ffffff', selLabel: segMode ? self.label(selSeg) : '',
+      bannerText: tab === 4 ? 'New instructions are added to this segment' : (tab === 2 || tab === 6 ? 'Shared by every segment; this segment is highlighted' : (tab === 3 ? 'Settings for this segment' : '')),
+      showSeveralBanner: severalMode,
+      shownChips: shownSegs.map((s) => ({ color: s.color, label: self.label(s) })),
+      severalText: shownSegs.length ? 'Each row and pin is marked in its segment\'s colour. Hidden segments still run.' : 'Nothing shown. Tick segments on the left.',
+      showAddTo: severalMode && shownSegs.length > 0, setAddTo: (e) => self.setState({ addTo: Number(e.target.value) }),
+      addToColor: addToSeg ? addToSeg.color : '#c4c4c4',
+      addToOpts: shownSegs.map((s) => { const on = addToSeg && addToSeg.id === s.id; return { label: self.label(s), pick: () => self.setState({ addTo: s.id }), style: 'padding: 4px 10px; font: inherit; cursor: pointer; border-radius: 3px; border: 2px solid ' + s.color + '; ' + (on ? 'background: ' + s.color + '; color: #ffffff; font-weight: 600' : 'background: #ffffff; color: #1a1a1a') }; }),
+      showWholeBanner: wholeMode && tab !== 'ov', wholeBannerText: 'Whole test: everything in the test is shown. Pick a segment on the left to focus on it.',
+      tabOv: tab === 'ov', tab1: tab === 1, tab2: tab === 2, tab3: tab === 3, tab4: tab === 4, tab5: tab === 5, tab6: tab === 6,
+      groups: groupsOut,
+      useHead: segMode ? 'Use' : '', whyHead: segMode ? 'Why' : (multi ? 'Used by segments' : ''), connRows: connRows,
+      connNote: segMode ? 'Connectors used by this segment\'s instructions are ticked and locked. Tick another to include it (for example to shorts-check unused pins). Unticking only removes it from this segment.' : (multi ? 'These are the fixture\'s connectors. Every segment shares them and their tester points.' : ''),
+      attRows: attRows, cells: cells, pointCount: pointCount,
+      attNote: multi ? 'One attachment map for the whole test. Changes here apply to every segment.' : '',
+      segMode: segMode, selLv: segMode ? selSeg.lv : true, selHv: segMode ? selSeg.hv : true,
+      toggleSelLv: () => self.upSeg(selSeg.id, { lv: !selSeg.lv }), toggleSelHv: () => self.upSeg(selSeg.id, { hv: !selSeg.hv }),
+      lvhvWarn: lvhvWarn, paramRows: paramRows,
+      paramNote: severalMode ? 'Comparing the segments shown. Show one segment to change its settings.' : segMode ? 'Click Change to set a value for this segment only; Reset goes back to the test\'s value.' : (multi ? 'These are the test\'s values. Segments use them unless they change them.' : ''),
+      instrRows: instrRows, segHead: multi ? 'Segment' : '', noInstr: instrRows.length === 0,
+      addInstr: addInstr, cantAdd: !target, addHint: target ? '' : 'Pick a segment on the left to add instructions to it.',
+      netRows: netRows, netNote: segMode ? 'Nets the tester expects while this segment runs. The other segments\' points stay in their own nets, so shorts to them are still caught.' : 'All nets in the test, by segment.',
+      labelRows: labelRows,
+      dlgAdd: st.dlg === 'add', addName: st.addName, setAddName: (e) => self.setState({ addName: e.target.value }),
+      startEmpty: st.addStart === 'empty', startCopy: st.addStart === 'copy', startConns: st.addStart === 'conns',
+      pickEmpty: () => self.setState({ addStart: 'empty' }), pickCopy: () => self.setState({ addStart: 'copy' }), pickConns: () => self.setState({ addStart: 'conns' }),
+      copyName: copySrc ? self.label(copySrc) : '', freeConns: freeList.join(', ') || 'none free',
+      setTest: st.addSet === 'test', setCopy: st.addSet === 'copy', pickSetTest: () => self.setState({ addSet: 'test' }), pickSetCopy: () => self.setState({ addSet: 'copy' }),
+      doAdd: doAdd,
+      dlgProps: st.dlg === 'props' && !!ps, pColor: ps ? ps.color : '#ffffff', pLabel: ps ? self.label(ps) : '', pTabs: pTabs,
+      pGen: st.propsTab === 'gen', pPar: st.propsTab === 'par', pPio: st.propsTab === 'pio',
+      pName: ps ? ps.name : '', pSetName: (e) => self.upSeg(ps.id, { name: e.target.value }),
+      palette: PAL.map((c) => ({ color: c, border: ps && ps.color === c ? '3px solid #1a1a1a' : '1px solid #1a1a1a', pick: () => self.upSeg(ps.id, { color: c }) })),
+      pOn: ps ? ps.on : true, pToggleOn: () => self.upSeg(ps.id, { on: !ps.on }),
+      pSummary: ps ? 'Uses ' + (segConns(ps).join(', ') || 'no connectors') + ' · ' + ps.instr.length + ' instructions' : '',
+      pCols: pCols, pPrompt: ps ? ps.prompt : '', pSetPrompt: (e) => self.upSeg(ps.id, { prompt: e.target.value }),
+      pIo: ps ? ps.io : 'None', pSetIo: (e) => self.upSeg(ps.id, { io: e.target.value }),
+      dlgDelete: st.dlg === 'delete',
+      deleteText: st.delId && self.getSeg(st.delId) ? 'Delete ' + self.label(self.getSeg(st.delId)) + '? Its ' + self.getSeg(st.delId).instr.length + ' instructions are deleted. Its connectors stay in the test.' : '',
+      doDelete: () => { const arr = segs.filter((s) => s.id !== st.delId); self.setState({ segs: arr, shown: arr.map((s) => s.id), dlg: null, sel: arr.length > 1 ? 'whole' : (arr[0] ? arr[0].id : 'whole'), tab: arr.length > 1 ? 'ov' : 4 }); },
+      dlgMp: st.dlg === 'mp', mpN: st.mpN, mpRows: mpRows, doMp: doMp,
+      mpChoices: [2, 4, 8].map((n) => ({ n: n, pick: () => self.setState({ mpN: n }), style: 'padding: 5px 14px; font: inherit; cursor: pointer; border-radius: 3px; ' + (st.mpN === n ? 'background: #0b5cad; color: #ffffff; border: 1px solid #08427c; font-weight: 600' : 'background: #fdfdfd; color: #1a1a1a; border: 1px solid #adadad') }))
+    };
+  }
+}
+
+const TPL=document.getElementById('tpl');
+const HOLE=/\{\{\s*([^}]+?)\s*\}\}/g;
+function lookup(scope,expr){expr=expr.trim();if(expr==='true')return true;if(expr==='false')return false;if(/^-?\d+(\.\d+)?$/.test(expr))return Number(expr);
+  let v=scope;for(const p of expr.split('.')){if(v==null)return undefined;v=v[p];}return v;}
+function single(str){const m=/^\s*\{\{\s*([^}]+?)\s*\}\}\s*$/.exec(str||'');return m?m[1]:null;}
+function interp(str,scope){return str.replace(HOLE,(_,e)=>{const v=lookup(scope,e);return v==null?'':String(v);});}
+const BOOL=['checked','disabled','selected'];
+function renderNodes(nodes,scope,out){for(const n of nodes)renderNode(n,scope,out);}
+function renderNode(n,scope,out){
+  if(n.nodeType===3){out.push(document.createTextNode(interp(n.nodeValue,scope)));return;}
+  if(n.nodeType!==1)return;
+  const tag=n.tagName.toLowerCase();
+  if(tag==='sc-if'){if(lookup(scope,single(n.getAttribute('value'))))renderNodes(n.childNodes,scope,out);return;}
+  if(tag==='sc-for'){const list=lookup(scope,single(n.getAttribute('list')))||[];const as=n.getAttribute('as');
+    list.forEach((item)=>{const sc=Object.create(scope);sc[as]=item;renderNodes(n.childNodes,sc,out);});return;}
+  const el=document.createElement(tag);let valueProp;
+  for(const a of Array.from(n.attributes)){const name=a.name;const raw=a.value;
+    if(name.startsWith('hint-'))continue;
+    if(name.startsWith('on')){const fn=lookup(scope,single(raw)||'');if(typeof fn==='function')el.addEventListener(name.slice(2).toLowerCase(),fn);continue;}
+    const se=single(raw);
+    if(BOOL.includes(name)){const v=se!==null?lookup(scope,se):true;if(v)el.setAttribute(name,'');continue;}
+    if(name==='value'&&(tag==='input'||tag==='textarea'||tag==='select')){valueProp=se!==null?lookup(scope,se):raw;continue;}
+    el.setAttribute(name,interp(raw,scope));}
+  const kids=[];renderNodes(n.childNodes,scope,kids);kids.forEach(k=>el.appendChild(k));
+  if(valueProp!==undefined){el.value=valueProp==null?'':valueProp;if(tag==='input')el.setAttribute('value',el.value);}
+  if(tag==='input'&&n.hasAttribute('checked')){const se=single(n.getAttribute('checked'));el.checked=se!==null?!!lookup(scope,se):true;}
+  out.push(el);
+}
+let comp,pending=false;const root=document.getElementById('root');
+function scheduleRender(){if(pending)return;pending=true;Promise.resolve().then(()=>{pending=false;render();});}
+function render(){const vals=comp.renderVals();const out=[];renderNodes(TPL.content.childNodes,vals,out);root.replaceChildren(...out);}
+
+comp=new Component({});render();
+</script>
+</body></html>
