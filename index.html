@@ -1,779 +1,898 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Easy-Wire segments: clickable prototype</title>
-<style>
-body{margin:0}
-a{color:#0b5cad}a:hover{color:#08427c}
-.btn{padding:6px 14px;background:#fdfdfd;border:1px solid #adadad;border-radius:3px;font:inherit;cursor:pointer;color:#1a1a1a}
-.btn:hover{background:#e9f1fa}
-.btn:disabled{color:#8a8a8a;cursor:default;background:#f4f4f4}
-.pri{background:#0b5cad;color:#ffffff;border:1px solid #08427c;border-radius:3px;font:inherit;font-weight:600;padding:7px 24px;cursor:pointer}
-.pri:hover{background:#08427c}
-.link{background:none;border:none;color:#0b5cad;text-decoration:underline;cursor:pointer;font:inherit;padding:0}
-.danger{color:#a3221b}
-.mi{display:block;width:100%;text-align:left;padding:6px 14px;border:none;background:#ffffff;font:inherit;cursor:pointer;color:#1a1a1a}
-.mi:hover{background:#d6e8f8}
-.big{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:16px 18px;background:#ffffff;border:1px solid #adadad;border-radius:4px;font:inherit;cursor:pointer;width:300px;color:#1a1a1a}
-.big:hover{border-color:#0b5cad;background:#f3f8fd}
-
-html,body{background:#e6e6e6}
-#wrap{display:flex;justify-content:center;padding:12px}
+<title>Easy-Wire Test Editor Concept v2</title>
+<style>:root{--acc:#005fb8;--acc2:#e5f0fb;--bd:#d1d1d1;--bd2:#e5e5e5;--tx:#1b1b1b;--tx2:#5c5c5c;--bg:#f3f3f3;--pane:#ffffff;--hov:#eaf2fb;--sel:#cce4f7;--warn:#9d5d00;--warnbg:#fff4ce;--err:#a4262c;--errbg:#fde7e9}
+*{box-sizing:border-box}
+html,body{margin:0;background:#dcdfe3;font-family:"Segoe UI",Tahoma,sans-serif;font-size:12px;color:var(--tx)}
+body.shot{background:#fff}
+.tour{max-width:1124px;margin:10px auto 8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#333}
+.tour b{font-size:13px}
+.tour select{font:inherit;padding:3px 6px}
+.stage{display:flex;justify-content:center;padding:0 8px 16px}
+body.shot .stage{padding:0}
+.win{width:1120px;height:720px;background:var(--bg);border:1px solid #8c8c8c;box-shadow:0 6px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.win.compact{width:640px;height:480px}
+body.shot .win{box-shadow:none}
+.title{height:30px;background:#fff;display:flex;align-items:center;gap:8px;padding-left:10px;flex-shrink:0}
+.title .ico{width:16px;height:16px;border-radius:3px;background:#c4262e;color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.title .cap{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title .wb{width:44px;height:30px;display:flex;align-items:center;justify-content:center;color:#333}
+.title .wb:hover{background:#e9e9e9}
+.title .wb.x:hover{background:#c42b1c;color:#fff}
+.body{flex:1;display:flex;min-height:0;padding:6px 6px 0 6px;gap:6px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.tabs{display:flex;gap:1px;padding-left:2px;flex-shrink:0}
+.tab{padding:6px 11px 6px;border:1px solid transparent;border-bottom:none;background:transparent;font:inherit;color:var(--tx2);cursor:pointer;border-radius:4px 4px 0 0;position:relative;white-space:nowrap}
+.tab:hover{background:#e8e8e8;color:var(--tx)}
+.tab.on{background:var(--pane);border-color:var(--bd);color:var(--tx);font-weight:600;margin-bottom:-1px;z-index:1}
+.tab.on::after{content:"";position:absolute;left:8px;right:8px;bottom:2px;height:2px;border-radius:2px;background:var(--tabc,var(--acc))}
+.page{flex:1;background:var(--pane);border:1px solid var(--bd);border-radius:0 4px 4px 4px;display:flex;flex-direction:column;min-height:0;position:relative}
+.segbar{display:flex;align-items:center;gap:8px;padding:5px 10px;border-bottom:1px solid var(--bd2);font-size:12px;flex-shrink:0}
+.segbar .chip{display:inline-flex;align-items:center;gap:5px;padding:1px 8px 1px 6px;border-radius:10px;color:#fff;font-weight:600}
+.stripe{height:3px;flex-shrink:0}
+.tb{display:flex;align-items:center;gap:2px;padding:5px 8px;border-bottom:1px solid var(--bd2);flex-wrap:nowrap;flex-shrink:0}
+.tb .sep{width:1px;height:20px;background:var(--bd);margin:0 5px}
+.tb .sp{flex:1}
+.b{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 8px;border:1px solid transparent;border-radius:4px;background:transparent;font:inherit;color:var(--tx);cursor:pointer;white-space:nowrap}
+.b:hover{background:#ebebeb;border-color:#e0e0e0}
+.b:disabled{color:#a0a0a0;cursor:default;background:transparent;border-color:transparent}
+.b svg{width:16px;height:16px;flex-shrink:0}
+.b.pri{background:var(--acc);color:#fff;border-color:#004c93}
+.b.pri:hover{background:#0067c0}
+.b.std{background:#fdfdfd;border-color:#c9c9c9;padding:0 14px}
+.b.std:hover{background:#f0f0f0}
+.b.seg{background:#eef5fc;border-color:#b6d4f2;color:#0b4a8c;font-weight:600}
+.b.on{background:var(--sel);border-color:#9cc8ee}
+.combo{height:26px;border:1px solid #c9c9c9;border-radius:4px;background:#fff;font:inherit;padding:0 6px;color:var(--tx)}
+.search{display:flex;align-items:center;gap:4px;height:26px;border:1px solid #c9c9c9;border-radius:4px;background:#fff;padding:0 6px;width:200px;color:var(--tx2)}
+.search input{border:none;outline:none;font:inherit;flex:1;min-width:0;background:transparent}
+.grid{flex:1;overflow:auto;min-height:0;position:relative}
+table.g{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed}
+table.g th{position:sticky;top:0;background:#fafafa;text-align:left;font-weight:400;color:var(--tx2);border-bottom:1px solid var(--bd);padding:4px 6px;height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:1}
+table.g th+th{border-left:1px solid var(--bd2)}
+table.g td{padding:0 6px;height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #f2f2f2}
+table.g tr.r{cursor:default}
+table.g tr.r:hover td{background:var(--hov)}
+table.g tr.r.s td{background:var(--sel)}
+table.g td.bar{padding:0;width:5px}
+table.g tr.dim td{color:#9a9a9a}
+table.g tr.end td{color:var(--tx2)}
+.foot{display:flex;align-items:center;gap:8px;padding:6px 6px;flex-shrink:0}
+.foot .sp{flex:1}
+.status{height:24px;display:flex;align-items:center;gap:0;border-top:1px solid var(--bd);background:#f9f9f9;font-size:11.5px;color:#444;flex-shrink:0}
+.status span{padding:0 10px;border-right:1px solid var(--bd2);white-space:nowrap;display:flex;align-items:center;gap:5px}
+.status span:last-child{border-right:none}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0}
+.rail{width:236px;flex-shrink:0;background:var(--pane);border:1px solid var(--bd);border-radius:4px;display:flex;flex-direction:column;min-height:0}
+.rail h3{margin:0;font-size:12.5px;font-weight:600;padding:9px 10px 2px;display:flex;align-items:center}
+.rail .hint{font-size:11px;color:var(--tx2);padding:0 10px 6px;line-height:1.35}
+.rrow{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 6px 8px;border-left:4px solid transparent;cursor:pointer;position:relative}
+.rrow:hover{background:var(--hov)}
+.rrow.focus{background:var(--rbg)}
+.rrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rrow .nm b{font-weight:600}
+.rrow .nm span{font-size:11px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .nm .off{color:#9a9a9a;text-decoration:line-through}
+.ib{width:24px;height:22px;border:1px solid transparent;border-radius:4px;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#444;flex-shrink:0;padding:0}
+.ib:hover{background:#e3e3e3}
+.ib svg{width:16px;height:16px}
+.ib.offeye{color:#b0b0b0}
+.rail .ft{border-top:1px solid var(--bd2);padding:8px;display:flex;flex-direction:column;gap:6px}
+.chk{width:15px;height:15px;margin:1px 0 0;accent-color:var(--acc);flex-shrink:0}
+.menu{position:absolute;background:#fff;border:1px solid #c4c4c4;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;z-index:30;min-width:200px}
+.menu .mi{display:flex;align-items:center;gap:8px;width:100%;padding:5px 10px;border:none;background:transparent;font:inherit;border-radius:4px;cursor:pointer;text-align:left;color:var(--tx)}
+.menu .mi:hover{background:var(--hov)}
+.menu .mi svg{width:16px;height:16px;color:#555}
+.menu .mi .k{margin-left:auto;color:#888;font-size:11px}
+.menu .mi.danger{color:var(--err)}
+.menu hr{border:none;border-top:1px solid var(--bd2);margin:4px 2px}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;z-index:40}
+.dlg{background:#fff;border:1px solid #8c8c8c;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:96%;overflow:hidden}
+.dlg .dt{height:32px;display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;border-bottom:1px solid var(--bd2)}
+.dlg .dt .cap{flex:1}
+.dlg .dc{padding:14px 16px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.dlg .db{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;background:#f7f7f7;border-top:1px solid var(--bd2)}
+.dlg .db .b{min-width:84px;justify-content:center}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>label,.lbl{font-weight:600;font-size:12px}
+.edit{height:26px;border:1px solid #c9c9c9;border-bottom-color:#8a8a8a;border-radius:4px;padding:0 7px;font:inherit;background:#fff;color:var(--tx)}
+.edit:disabled{background:#f5f5f5;color:#8a8a8a;border-bottom-color:#c9c9c9}
+.edit.num{width:110px}
+.radio{display:flex;align-items:center;gap:7px;cursor:pointer}
+.radio input{accent-color:var(--acc);margin:0}
+.info{display:block;padding:8px 10px;border-radius:4px;background:#eef5fc;border:1px solid #c7def5;line-height:1.4}
+.info.warn{background:var(--warnbg);border-color:#f0d58a}
+.info.err{background:var(--errbg);border-color:#f1b8bd}
+.info svg{width:16px;height:16px;vertical-align:-3px;margin-right:7px}
+.dtabs{display:flex;gap:2px;padding:8px 16px 0}
+.cat{border:1px solid var(--bd);border-radius:6px;background:#fff}
+.cat+.cat{margin-top:8px}
+.cat .ch{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-radius:6px}
+.cat .ch:hover{background:#f6f6f6}
+.cat .ch .t{font-weight:600;min-width:150px}
+.cat .ch .sum{flex:1;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat .ch .badge{font-size:11px;padding:0 7px;border-radius:9px;background:var(--warnbg);color:var(--warn);font-weight:600}
+.cat .cb{border-top:1px solid var(--bd2);padding:10px 12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px}
+.cat .cb.one{grid-template-columns:1fr}
+.prow{display:grid;grid-template-columns:minmax(150px,220px) 120px 1fr;align-items:center;gap:8px;min-height:26px}
+.prow .src{font-size:11px;color:var(--tx2)}
+.prow.chg{background:#fff8e6;border-radius:4px;margin:0 -6px;padding:0 6px}
+.prow.chg .src{color:var(--warn);font-weight:600}
+.prow.dis{opacity:.45}
+.opt{display:flex;align-items:center;gap:7px}
+.opt input{accent-color:var(--acc);margin:0}
+.toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.toggle .sw{width:34px;height:18px;border-radius:9px;border:1px solid #6b6b6b;background:#fff;position:relative;flex-shrink:0}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:10px;height:10px;border-radius:5px;background:#555}
+.toggle.on .sw{background:var(--acc);border-color:var(--acc)}
+.toggle.on .sw::after{left:19px;background:#fff}
+.side{width:230px;flex-shrink:0;border-left:1px solid var(--bd2);display:flex;flex-direction:column;background:#fbfbfb}
+.side h4{margin:0;padding:8px 10px;font-size:12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--bd2)}
+.side .sb{padding:8px 10px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+.side .kv{display:grid;grid-template-columns:86px 1fr;gap:2px 6px;font-size:11.5px}
+.side .kv span:nth-child(odd){color:var(--tx2)}
+.side .sec{font-weight:600;font-size:11.5px;display:flex;align-items:center;gap:6px}
+.side .chg{color:var(--warn);font-weight:600}
+.sidecol{width:22px;flex-shrink:0;border-left:1px solid var(--bd2);display:flex;flex-direction:column;align-items:center;padding-top:6px;background:#fbfbfb}
+.vt{writing-mode:vertical-rl;font-size:11px;color:var(--tx2);margin-top:8px}
+.plan{display:flex;gap:10px;flex-wrap:wrap}
+.step{flex:1 1 220px;border:1px solid var(--bd);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;background:#fff}
+.step .sh{font-weight:600;display:flex;gap:6px;align-items:center}
+.step .why{font-size:11px;color:var(--tx2)}
+.pts{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px}
+.pt{height:20px;font-size:9.5px;display:flex;align-items:center;justify-content:center;border-radius:2px;background:#ececec;color:#777}
+.swatch{width:26px;height:22px;border-radius:4px;cursor:pointer;border:2px solid transparent}
+.swatch.on{border-color:#1b1b1b;box-shadow:inset 0 0 0 2px #fff}
+.undo{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#eef5fc;border-bottom:1px solid #c7def5;flex-shrink:0}
+.undo .sp{flex:1}
+.ann{position:absolute;right:8px;bottom:8px;background:#fffbe6;border:1px solid #e9d27a;border-radius:4px;padding:4px 8px;font-size:11px;color:#6b5600;z-index:5}
+.hide{display:none!important}
+.lnk{color:var(--acc);background:none;border:none;font:inherit;padding:0;cursor:pointer;text-decoration:underline}
+.mono{font-family:Consolas,monospace}
+.colhead{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;font-weight:600;border-bottom:1px solid var(--bd2)}
+.colhead span{font-weight:400;color:var(--tx2)}
+.split{flex:1;display:flex;min-height:0}
+.split>.pane{display:flex;flex-direction:column;min-width:0;min-height:0}
+.split>.pane+.pane{border-left:1px solid var(--bd)}
+.start{position:absolute;inset:30px 0 0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.card{width:300px;text-align:left;padding:14px 16px;background:#fff;border:1px solid var(--bd);border-radius:8px;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:5px}
+.card:hover{border-color:var(--acc);background:#f6faff}
+.card b{font-size:14px}
+.subtabs{display:flex;align-items:center;gap:4px;padding:6px 8px 0;border-bottom:1px solid var(--bd2);flex-shrink:0}
+.sub{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 6px;border:none;background:transparent;font:inherit;color:var(--tx2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.sub:hover{color:var(--tx);background:#f4f4f4;border-radius:4px 4px 0 0}
+.sub.on{color:var(--tx);font-weight:600;border-bottom-color:var(--acc)}
+.subnote{margin-left:auto;color:var(--tx2);font-size:11.5px;padding-right:4px}
 </style></head>
-<body>
-<template id="tpl">
-<div style="width: 1100px; height: 760px; box-sizing: border-box; background: #f0f0f0; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; color: #1a1a1a; border: 1px solid #8a8a8a; position: relative; display: flex; flex-direction: column; overflow: hidden">
+<body><div class="tour" id="tour"></div><div class="stage" id="app"></div>
+<script>'use strict';
+/* Easy-Wire Test Program Editor v2 concept. Plain JS prototype; every control maps to a stock VCL control (see Confluence page). */
+const PAL = ['#2F6DB5', '#C2610C', '#7B4FB0', '#0F7B8A', '#8A5A2B', '#B0368A', '#4F6B8A', '#8A6D00'];
+const BASEC = '#6B6B6B';
+const P = (d) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC = {
+  add: P('<path d="M8 3v10M3 8h10"/>'),
+  addm: P('<path d="M6 2v7M2.5 5.5h7"/><path d="M10 9v5M7.5 11.5h5"/>'),
+  seq: P('<path d="M3 4h7M3 8h7M3 12h7"/><path d="M12 6l2 2-2 2"/>'),
+  edit: P('<path d="M10.5 2.5l3 3L6 13H3v-3z"/>'),
+  del: P('<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9"/>'),
+  swap: P('<path d="M3 5.5h9.5M10 3l2.5 2.5L10 8"/><path d="M13 10.5H3.5M6 8l-2.5 2.5L6 13"/>'),
+  type: P('<path d="M3 4h10M8 4v9"/>'),
+  undo: P('<path d="M5 6.5H10a3 3 0 010 6H6"/><path d="M7 4L4.5 6.5 7 9"/>'),
+  search: P('<circle cx="7" cy="7" r="4"/><path d="M10 10l3.5 3.5"/>'),
+  more: P('<circle cx="3.5" cy="8" r=".6" fill="currentColor"/><circle cx="8" cy="8" r=".6" fill="currentColor"/><circle cx="12.5" cy="8" r=".6" fill="currentColor"/>'),
+  seg: P('<rect x="2.5" y="2.5" width="4.5" height="11" rx="1"/><rect x="9" y="2.5" width="4.5" height="5" rx="1"/><rect x="9" y="9.5" width="4.5" height="4" rx="1"/>'),
+  eye: P('<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>'),
+  eyeoff: P('<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><path d="M2.5 13.5l11-11"/>'),
+  gear: P('<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M3.6 12.4l1.2-1.2M11.2 4.8l1.2-1.2"/>'),
+  run: P('<path d="M5 3l8 5-8 5z"/>'),
+  probe: P('<path d="M3 13l5-5M8 8l2-5 3 3-5 2"/>'),
+  led: P('<circle cx="8" cy="7" r="3.5"/><path d="M6.5 11v2.5M9.5 11v2.5"/>'),
+  attach: P('<path d="M6 10l4-4"/><path d="M8.5 4.5l1-1a2.5 2.5 0 013.5 3.5l-1 1M7.5 11.5l-1 1A2.5 2.5 0 013 9l1-1"/>'),
+  unattach: P('<path d="M8.5 4.5l1-1a2.5 2.5 0 013.5 3.5l-1 1M7.5 11.5l-1 1A2.5 2.5 0 013 9l1-1"/><path d="M2.5 2.5l11 11"/>'),
+  four: P('<rect x="2.5" y="2.5" width="11" height="11" rx="1"/><circle cx="5.5" cy="5.5" r=".8"/><circle cx="10.5" cy="5.5" r=".8"/><circle cx="5.5" cy="10.5" r=".8"/><circle cx="10.5" cy="10.5" r=".8"/>'),
+  import: P('<path d="M8 2.5v8M5 7.5l3 3 3-3"/><path d="M3 12.5h10"/>'),
+  learn: P('<path d="M8 2a4 4 0 00-2.5 7.1V11h5V9.1A4 4 0 008 2zM6 13.5h4"/>'),
+  script: P('<path d="M5 4L2 8l3 4M11 4l3 4-3 4"/>'),
+  reorder: P('<path d="M5 3v10M3 11l2 2 2-2M11 13V3M9 5l2-2 2 2"/>'),
+  copy: P('<rect x="5" y="5" width="8.5" height="8.5" rx="1"/><path d="M3 10.5V3.5a1 1 0 011-1h6.5"/>'),
+  part: P('<rect x="2" y="3" width="5" height="10" rx="1"/><rect x="9" y="3" width="5" height="10" rx="1"/>'),
+  up: P('<path d="M8 13V3M4 7l4-4 4 4"/>'),
+  down: P('<path d="M8 3v10M4 9l4 4 4-4"/>'),
+  info: P('<circle cx="8" cy="8" r="6"/><path d="M8 7.5V11M8 5h0"/>'),
+  warn: P('<path d="M8 2.5l6 10.5H2z"/><path d="M8 6.5v3M8 11.3h0"/>'),
+  chevr: P('<path d="M6 3.5L10.5 8 6 12.5"/>'),
+  chevd: P('<path d="M3.5 6L8 10.5 12.5 6"/>'),
+  chevl: P('<path d="M10 3.5L5.5 8 10 12.5"/>'),
+  done: P('<path d="M3 8.5l3 3 7-7"/>'),
+  save: P('<path d="M3 2.5h8l2.5 2.5v8.5h-10.5z"/><path d="M5.5 2.5v3.5h5V2.5M5 13.5V9h6v4.5"/>'),
+  saveas: P('<path d="M3 2.5h7l2 2V7M3 2.5v11h5"/><path d="M5.5 2.5V5h4V2.5"/><path d="M13.5 9.5l-4 4H8v-1.5l4-4z"/>'),
+  text: P('<path d="M3.5 2.5h6l3 3v8h-9z"/><path d="M5.5 7.5h5M5.5 10h5"/>'),
+  report: P('<path d="M4 6V2.5h8V6"/><rect x="2" y="6" width="12" height="5" rx="1"/><path d="M4 9.5h8v4H4z"/>'),
+  help: P('<circle cx="8" cy="8" r="6"/><path d="M6.3 6.2a1.8 1.8 0 113 1.3c-.7.5-1.3.8-1.3 1.8M8 11.5h0"/>'),
+  hv: P('<path d="M9 1.5L4 9h4l-1 5.5L12 7H8z"/>'),
+  close: P('<path d="M4 4l8 8M12 4l-8 8"/>'),
+  plug: P('<path d="M5 2v3M11 2v3M3.5 5h9v3a4.5 4.5 0 01-9 0zM8 12.5V15"/>'),
+  label: P('<path d="M2.5 3.5h6l5 4.5-5 4.5h-6z"/><circle cx="5.5" cy="8" r=".8"/>'),
+  ovw: P('<rect x="2.5" y="2.5" width="11" height="11" rx="1"/><path d="M2.5 6.5h11M6.5 6.5v7"/>'),
+  base: P('<path d="M2.5 11.5h11M4 11.5V7l4-3 4 3v4.5"/>')
+};
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clone = (o) => JSON.parse(JSON.stringify(o));
 
-<sc-if value="{{isStart}}" hint-placeholder-val="{{ true }}">
-  <div style="height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: #ffffff; border-bottom: 1px solid #d0d0d0">
-    <div style="width: 16px; height: 16px; background: #c4262e; border-radius: 3px"></div>
-    <span>Easy-Wire</span>
-  </div>
-  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 30px">
-    <div style="display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; max-width: 720px">
-      <span style="font-size: 22px; font-weight: 600">Segments in Easy-Wire: clickable prototype</span>
-      <span style="color: #3d3d3d; line-height: 1.5">This is a mockup, not the real software. Click anything: segments, tabs, the ⋯ menus, checkboxes and dialogs all work. Nothing is saved. Use <strong>Back to start</strong> to try another path.</span>
-    </div>
-    <div style="display: flex; gap: 16px">
-      <button class="big" onClick="{{openDemo}}"><span style="font-weight: 600; font-size: 15px">Open a segmented test</span><span style="color: #3d3d3d; line-height: 1.4">Door Module Harness: 3 segments, including a switch state</span></button>
-      <button class="big" onClick="{{newTest}}"><span style="font-weight: 600; font-size: 15px">Create New Test</span><span style="color: #3d3d3d; line-height: 1.4">A normal one-segment test. Try + Add Segment.</span></button>
-      <button class="big" onClick="{{openMP}}"><span style="font-weight: 600; font-size: 15px">Create Multi-Part Test…</span><span style="color: #3d3d3d; line-height: 1.4">Several identical parts on one fixture</span></button>
-    </div>
-  </div>
-</sc-if>
-
-<sc-if value="{{isEditor}}" hint-placeholder-val="{{ false }}">
-  <div style="height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: #ffffff; border-bottom: 1px solid #d0d0d0">
-    <div style="width: 16px; height: 16px; background: #c4262e; border-radius: 3px"></div>
-    <span>Test Program Editor - {{testName}}</span>
-    <div style="flex-grow: 1"></div>
-    <button class="link" onClick="{{goStart}}">Back to start</button>
-  </div>
-  <div style="flex-grow: 1; display: flex; gap: 10px; padding: 8px 10px 0 10px; min-height: 0">
-
-    <sc-if value="{{showRail}}" hint-placeholder-val="{{ true }}">
-      <div style="width: 236px; flex-shrink: 0; background: #ffffff; border: 1px solid #c4c4c4; display: flex; flex-direction: column; position: relative">
-        <div style="padding: 10px 12px 4px 12px; font-weight: 600; font-size: 14px">Segments</div>
-        <div style="padding: 0 12px 4px 12px; color: #4a4a4a; font-size: 12px; line-height: 1.4">{{runSummary}}</div>
-        <div style="padding: 0 12px 8px 12px; color: #4a4a4a; font-size: 12px; line-height: 1.4">Click a name to focus on it. Tick boxes to show several at once.</div>
-        <button onClick="{{selWhole}}" style="{{wholeStyle}}"><span style="width: 14px; height: 14px; border: 1px solid #8a8a8a; background: #ffffff; flex-shrink: 0"></span><span style="display: flex; flex-direction: column; gap: 1px; text-align: left"><span style="font-weight: 600">Whole test</span><span style="font-size: 12px; color: #4a4a4a">Overview of all segments</span></span></button>
-        <div style="display: flex; flex-direction: column; overflow-y: auto; min-height: 0; flex: 0 1 auto">
-          <sc-for list="{{segRows}}" as="s" hint-placeholder-count="3">
-            <div onClick="{{s.select}}" style="{{s.rowStyle}}">
-              <input type="checkbox" checked="{{s.shown}}" onChange="{{s.toggleShown}}" onClick="{{stop}}" aria-label="Show in editor" title="Show this segment in the editor" style="margin-top: 2px; accent-color: {{s.color}}">
-              <span style="width: 14px; height: 14px; background: {{s.color}}; flex-shrink: 0; margin-top: 2px"></span>
-              <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
-                <span style="font-weight: {{s.weight}}">{{s.label}}</span>
-                <span style="font-size: 12px; color: #4a4a4a">{{s.sub}}</span>
-              </span>
-              <button onClick="{{s.openMenu}}" aria-label="More options" style="{{s.dotsStyle}}">⋯</button>
-            </div>
-          </sc-for>
-        </div>
-        <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
-          <div role="menu" style="position: absolute; left: 226px; top: {{menuTop}}; width: 190px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 6px 18px rgba(0,0,0,0.25); padding: 4px 0; z-index: 10">
-            <button class="mi" style="font-weight: 600" onClick="{{menuEdit}}">Edit segment…</button>
-            <button class="mi" onClick="{{menuEdit}}">Rename</button>
-            <button class="mi" onClick="{{menuEdit}}">Change colour</button>
-            <button class="mi" onClick="{{menuDup}}">Duplicate</button>
-            <button class="mi" onClick="{{menuUp}}">Move up</button>
-            <button class="mi" onClick="{{menuDown}}">Move down</button>
-            <div style="height: 1px; background: #e0e0e0; margin: 4px 0"></div>
-            <button class="mi danger" onClick="{{menuDelete}}">Delete segment…</button>
-          </div>
-        </sc-if>
-        <div style="flex-grow: 1"></div>
-        <div style="padding: 10px 12px; border-top: 1px solid #e2e2e2">
-          <button class="btn" onClick="{{openAdd}}" style="width: 100%; background: #e8f1fb; border-color: #0b5cad; color: #0b4a8c; font-weight: 600">+ Add Segment</button>
-        </div>
-      </div>
-    </sc-if>
-
-    <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0">
-      <div style="display: flex; gap: 2px">
-        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
-          <button onClick="{{t.click}}" style="{{t.style}}">{{t.label}}</button>
-        </sc-for>
-      </div>
-      <div style="{{frameStyle}}">
-        <sc-if value="{{showSegBanner}}" hint-placeholder-val="{{ false }}">
-          <div style="display: flex; align-items: center; gap: 10px; background: {{selColor}}; color: #ffffff; padding: 7px 10px">
-            <span style="font-weight: 600">{{selLabel}}</span><span>{{bannerText}}</span>
-            <div style="flex-grow: 1"></div>
-            <button class="link" style="color: #ffffff" onClick="{{selWhole}}">Show whole test</button>
-          </div>
-        </sc-if>
-        <sc-if value="{{showSeveralBanner}}" hint-placeholder-val="{{ false }}">
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #f7f7f7; border: 1px solid #c4c4c4; padding: 7px 10px">
-            <span style="font-weight: 600">Showing</span>
-            <sc-for list="{{shownChips}}" as="u" hint-placeholder-count="2"><span style="padding: 1px 9px; border-radius: 10px; color: #ffffff; background: {{u.color}}">{{u.label}}</span></sc-for>
-            <span>{{severalText}}</span>
-            <div style="flex-grow: 1"></div>
-            <button class="link" onClick="{{selWhole}}">Show whole test</button>
-          </div>
-        </sc-if>
-        <sc-if value="{{showWholeBanner}}" hint-placeholder-val="{{ false }}">
-          <div style="background: #eef5fc; border: 1px solid #b9d4ef; padding: 7px 10px">{{wholeBannerText}}</div>
-        </sc-if>
-
-        <sc-if value="{{tabOv}}" hint-placeholder-val="{{ false }}">
-          <div style="font-size: 15px; font-weight: 600">How this test runs</div>
-          <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap">
-            <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
-              <div style="flex: 1 1 200px; border: 1px solid {{g.border}}; background: {{g.bg}}; padding: 9px 11px; display: flex; flex-direction: column; gap: 4px">
-                <span style="font-weight: 600">{{g.title}}</span>
-                <sc-for list="{{g.items}}" as="it" hint-placeholder-count="2">
-                  <span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; background: {{it.color}}"></span>{{it.label}}</span>
-                </sc-for>
-                <span style="font-size: 12px; color: #3d3d3d">{{g.note}}</span>
-              </div>
-            </sc-for>
-          </div>
-          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 40px 190px 90px 1fr 90px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>On</span><span>Segment</span><span>Instructions</span><span>Connectors</span><span>LV / HV</span><span>Settings · prompt</span></div>
-            <sc-for list="{{segRows}}" as="s" hint-placeholder-count="3">
-              <div style="display: grid; grid-template-columns: 40px 190px 90px 1fr 90px 1fr; gap: 6px; padding: 7px 10px; border-bottom: 1px solid #ececec; align-items: center">
-                <input type="checkbox" checked="{{s.on}}" onChange="{{s.toggleOn}}" aria-label="Segment on">
-                <button class="link" onClick="{{s.select}}" style="text-align: left; display: flex; gap: 6px; align-items: center; color: #1a1a1a; text-decoration: none"><span style="width: 12px; height: 12px; background: {{s.color}}"></span><span style="text-decoration: underline">{{s.label}}</span></button>
-                <span>{{s.count}}</span><span>{{s.conns}}</span><span>{{s.lvhv}}</span><span style="color: {{s.setColor}}">{{s.setText}}</span>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{tab1}}" hint-placeholder-val="{{ false }}">
-          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 54px 60px 170px 54px 90px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>{{useHead}}</span><span>Name</span><span>Connector type</span><span>Pins</span><span>Points</span><span>{{whyHead}}</span></div>
-            <sc-for list="{{connRows}}" as="c" hint-placeholder-count="7">
-              <div style="display: grid; grid-template-columns: 54px 60px 170px 54px 90px 1fr; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec; align-items: center; background: {{c.bg}}; color: {{c.fg}}">
-                <span><sc-if value="{{c.showBox}}" hint-placeholder-val="{{ false }}"><input type="checkbox" checked="{{c.use}}" disabled="{{c.locked}}" onChange="{{c.toggle}}" aria-label="Use connector"></sc-if></span>
-                <span style="font-weight: {{c.weight}}">{{c.name}}</span><span>{{c.type}}</span><span>{{c.pins}}</span><span>{{c.range}}</span>
-                <span style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center">
-                  <sc-for list="{{c.chips}}" as="u" hint-placeholder-count="1"><span style="padding: 1px 8px; border-radius: 10px; color: #ffffff; background: {{u.color}}; font-size: 12px">{{u.label}}</span></sc-for>
-                  <span>{{c.why}}</span>
-                </span>
-              </div>
-            </sc-for>
-          </div>
-          <div style="color: #3d3d3d; line-height: 1.45">{{connNote}}</div>
-        </sc-if>
-
-        <sc-if value="{{tab2}}" hint-placeholder-val="{{ false }}">
-          <div style="display: flex; gap: 12px; flex-grow: 1; min-height: 0">
-            <div style="width: 220px; border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto">
-              <div style="display: grid; grid-template-columns: 50px 1fr 70px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Name</span><span>Points</span><span>Segment</span></div>
-              <sc-for list="{{attRows}}" as="a" hint-placeholder-count="7">
-                <div style="display: grid; grid-template-columns: 50px 1fr 70px; padding: 6px 10px; border-bottom: 1px solid #ececec; background: {{a.bg}}; color: {{a.fg}}; font-weight: {{a.weight}}"><span>{{a.name}}</span><span>{{a.range}}</span><span>{{a.segs}}</span></div>
-              </sc-for>
-            </div>
-            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0">
-              <span style="font-weight: 600">Tester points 1–{{pointCount}}</span>
-              <div style="display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px">
-                <sc-for list="{{cells}}" as="c" hint-placeholder-count="64">
-                  <div style="height: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; line-height: 1.15; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}"><span style="font-weight: 600">{{c.con}}</span><span>{{c.n}}</span></div>
-                </sc-for>
-              </div>
-              <span style="color: #3d3d3d">{{attNote}}</span>
-            </div>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{tab3}}" hint-placeholder-val="{{ false }}">
-          <sc-if value="{{segMode}}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; gap: 22px; align-items: center">
-              <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked="{{selLv}}" onChange="{{toggleSelLv}}"> Test low voltage</label>
-              <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked="{{selHv}}" onChange="{{toggleSelHv}}"> Test high voltage</label>
-              <span style="color: #8a4b00; font-weight: 600">{{lvhvWarn}}</span>
-            </div>
-          </sc-if>
-          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 50px 220px 130px 1fr 80px; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span></span><span>Setting</span><span>Value</span><span>Comes from</span><span></span></div>
-            <sc-for list="{{paramRows}}" as="p" hint-placeholder-count="8">
-              <div style="display: grid; grid-template-columns: 50px 220px 130px 1fr 80px; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec; align-items: center; background: {{p.bg}}; opacity: {{p.opacity}}">
-                <span style="font-size: 11px; color: #555555">{{p.grp}}</span>
-                <span style="font-weight: {{p.weight}}">{{p.name}}</span>
-                <input value="{{p.val}}" onChange="{{p.edit}}" disabled="{{p.locked}}" aria-label="{{p.name}}" style="font: inherit; padding: 3px 6px; border: 1px solid #b0b0b0; width: 120px; box-sizing: border-box; background: {{p.inBg}}">
-                <span style="color: {{p.srcColor}}">{{p.src}}</span>
-                <sc-if value="{{p.hasAct}}" hint-placeholder-val="{{ true }}"><button class="link" onClick="{{p.act}}">{{p.actLabel}}</button></sc-if>
-              </div>
-            </sc-for>
-          </div>
-          <div style="color: #3d3d3d">{{paramNote}}</div>
-        </sc-if>
-
-        <sc-if value="{{tab4}}" hint-placeholder-val="{{ false }}">
-          <div style="flex-grow: 1; border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 8px 100px 90px 90px 1fr 130px 30px; column-gap: 8px; padding: 5px 8px 5px 0; border-bottom: 1px solid #d8d8d8; background: #f7f7f7; font-weight: 600"><span></span><span>Type</span><span>From</span><span>To</span><span>Parameters</span><span>{{segHead}}</span><span></span></div>
-            <sc-for list="{{instrRows}}" as="r" hint-placeholder-count="8">
-              <div style="display: grid; grid-template-columns: 8px 100px 90px 90px 1fr 130px 30px; column-gap: 8px; padding: 0 8px 0 0; border-bottom: 1px solid #f0f0f0; align-items: stretch">
-                <span style="background: {{r.color}}"></span><span style="padding: 4px 0">{{r.t}}</span><span style="padding: 4px 0">{{r.f}}</span><span style="padding: 4px 0">{{r.to}}</span><span style="padding: 4px 0">{{r.p}}</span><span style="padding: 4px 0; color: {{r.color}}; font-weight: 600">{{r.seg}}</span>
-                <button class="link" onClick="{{r.del}}" aria-label="Delete instruction" style="color: #6b6b6b; text-decoration: none">×</button>
-              </div>
-            </sc-for>
-            <sc-if value="{{noInstr}}" hint-placeholder-val="{{ false }}"><div style="padding: 14px; color: #555555">No instructions in this segment yet. Click Add Instruction.</div></sc-if>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center">
-            <select style="width: 120px; padding: 4px; font: inherit" aria-label="Instruction type"><option>WIRE</option></select>
-            <sc-if value="{{showAddTo}}" hint-placeholder-val="{{ false }}">
-              <span style="display: flex; gap: 6px; align-items: center">Add to
-                <sc-for list="{{addToOpts}}" as="o" hint-placeholder-count="2"><button onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
-              </span>
-            </sc-if>
-            <button class="btn" onClick="{{addInstr}}" disabled="{{cantAdd}}">Add Instruction</button>
-            <span style="color: #555555">{{addHint}}</span>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{tab5}}" hint-placeholder-val="{{ false }}">
-          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 70px 1fr 170px; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Net</span><span>Points</span><span>Segment</span></div>
-            <sc-for list="{{netRows}}" as="n" hint-placeholder-count="6">
-              <div style="display: grid; grid-template-columns: 70px 1fr 170px; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #ececec"><span>{{n.name}}</span><span>{{n.pins}}</span><span style="color: {{n.color}}; font-weight: 600">{{n.seg}}</span></div>
-            </sc-for>
-          </div>
-          <div style="color: #3d3d3d; line-height: 1.45">{{netNote}}</div>
-        </sc-if>
-
-        <sc-if value="{{tab6}}" hint-placeholder-val="{{ false }}">
-          <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; overflow-y: auto; min-height: 0">
-            <div style="display: grid; grid-template-columns: 80px 90px 200px 1fr; gap: 6px; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Pin</span><span>Tester point</span><span>Label</span><span>Used by</span></div>
-            <sc-for list="{{labelRows}}" as="l" hint-placeholder-count="10">
-              <div style="display: grid; grid-template-columns: 80px 90px 200px 1fr; gap: 6px; padding: 4px 10px; border-bottom: 1px solid #ececec; align-items: center"><span>{{l.pin}}</span><span>{{l.pt}}</span><input value="{{l.label}}" onChange="{{l.edit}}" placeholder="No label" aria-label="Label" style="font: inherit; padding: 2px 6px; border: 1px solid #b0b0b0; width: 180px"><span>{{l.used}}</span></div>
-            </sc-for>
-          </div>
-          <div style="color: #3d3d3d">A label belongs to the pin, so it's the same in every segment.</div>
-        </sc-if>
-      </div>
-    </div>
-  </div>
-  <div style="display: flex; align-items: center; gap: 10px; padding: 10px">
-    <button class="btn" onClick="{{goStart}}">Done</button>
-    <button class="btn">Save</button>
-    <button class="btn">Save As</button>
-    <div style="flex-grow: 1"></div>
-    <sc-if value="{{showBottomAdd}}" hint-placeholder-val="{{ false }}">
-      <button class="btn" onClick="{{openAdd}}" style="background: #e8f1fb; border-color: #0b5cad; color: #0b4a8c; font-weight: 600">+ Add Segment…</button>
-    </sc-if>
-    <button class="btn">Help</button>
-  </div>
-</sc-if>
-
-<sc-if value="{{dlgAdd}}" hint-placeholder-val="{{ false }}">
-  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
-    <div style="width: 560px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
-      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Add Segment</div>
-      <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
-        <label style="display: flex; flex-direction: column; gap: 5px"><span style="font-weight: 600">Segment name</span><input value="{{addName}}" onChange="{{setAddName}}" style="padding: 5px 8px; font: inherit; border: 1px solid #8a8a8a"></label>
-        <fieldset style="border: 1px solid #d0d0d0; padding: 8px 12px; margin: 0; display: flex; flex-direction: column; gap: 6px">
-          <legend style="font-weight: 600; padding: 0 4px">Start with</legend>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startEmpty}}" onChange="{{pickEmpty}}"> Empty: I'll add instructions</label>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startCopy}}" onChange="{{pickCopy}}"> A copy of {{copyName}}</label>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="st" checked="{{startConns}}" onChange="{{pickConns}}"> Connectors not used by any segment ({{freeConns}})</label>
-        </fieldset>
-        <fieldset style="border: 1px solid #d0d0d0; padding: 8px 12px; margin: 0; display: flex; flex-direction: column; gap: 6px">
-          <legend style="font-weight: 600; padding: 0 4px">Settings</legend>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="se" checked="{{setTest}}" onChange="{{pickSetTest}}"> Same as the test (recommended)</label>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="radio" name="se" checked="{{setCopy}}" onChange="{{pickSetCopy}}"> Same as {{copyName}}</label>
-        </fieldset>
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
-        <button class="pri" onClick="{{doAdd}}">Add Segment</button>
-        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
-      </div>
-    </div>
-  </div>
-</sc-if>
-
-<sc-if value="{{dlgProps}}" hint-placeholder-val="{{ false }}">
-  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
-    <div style="width: 760px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
-      <div style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #d0d0d0"><span style="width: 14px; height: 14px; background: {{pColor}}"></span>Segment Properties - {{pLabel}}</div>
-      <div style="height: 6px; background: {{pColor}}"></div>
-      <div style="display: flex; gap: 2px; padding: 8px 16px 0 16px">
-        <sc-for list="{{pTabs}}" as="t" hint-placeholder-count="3"><button onClick="{{t.click}}" style="{{t.style}}">{{t.label}}</button></sc-for>
-      </div>
-      <div style="margin: 0 16px; border: 1px solid #c4c4c4; padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 360px; box-sizing: border-box">
-        <sc-if value="{{pGen}}" hint-placeholder-val="{{ true }}">
-          <label style="display: flex; flex-direction: column; gap: 5px; max-width: 360px"><span style="font-weight: 600">Name</span><input value="{{pName}}" onChange="{{pSetName}}" style="padding: 5px 8px; font: inherit; border: 1px solid #8a8a8a"></label>
-          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Colour</span>
-            <div style="display: flex; gap: 6px">
-              <sc-for list="{{palette}}" as="c" hint-placeholder-count="8"><button onClick="{{c.pick}}" aria-label="Colour" style="width: 30px; height: 26px; background: {{c.color}}; border: {{c.border}}; cursor: pointer"></button></sc-for>
-            </div>
-          </div>
-          <label style="display: flex; gap: 8px; align-items: center"><input type="checkbox" checked="{{pOn}}" onChange="{{pToggleOn}}"> Segment is on (tested)</label>
-          <div style="color: #3d3d3d">{{pSummary}}</div>
-        </sc-if>
-        <sc-if value="{{pPar}}" hint-placeholder-val="{{ false }}">
-          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-            <sc-for list="{{pCols}}" as="col" hint-placeholder-count="2">
-              <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column">
-                <label style="display: flex; gap: 8px; align-items: center; padding: 6px 10px; background: #f0f0f0; border-bottom: 1px solid #d0d0d0; font-weight: 600"><input type="checkbox" checked="{{col.on}}" onChange="{{col.toggle}}"> {{col.title}}<span style="margin-left: auto; font-weight: 400; font-size: 12px; color: {{col.srcColor}}">{{col.src}}</span></label>
-                <sc-if value="{{col.warn}}" hint-placeholder-val="{{ false }}"><div style="padding: 6px 10px; background: #fff4e2; border-bottom: 1px solid #e6c48a; font-size: 12px; line-height: 1.4">{{col.warnText}}</div></sc-if>
-                <sc-for list="{{col.rows}}" as="p" hint-placeholder-count="4">
-                  <div style="display: grid; grid-template-columns: 22px 1fr 104px; gap: 6px; padding: 5px 10px; border-bottom: 1px solid #efefef; align-items: center; background: {{p.bg}}; opacity: {{p.opacity}}">
-                    <input type="checkbox" checked="{{p.over}}" onChange="{{p.toggleOver}}" aria-label="Change for this segment">
-                    <span style="display: flex; flex-direction: column"><span style="font-weight: {{p.weight}}">{{p.name}}</span><span style="font-size: 11px; color: {{p.srcColor}}">{{p.src}}</span></span>
-                    <input value="{{p.val}}" onChange="{{p.edit}}" disabled="{{p.locked}}" aria-label="{{p.name}}" style="font: inherit; padding: 3px 6px; border: 1px solid #b0b0b0; width: 100px; box-sizing: border-box; background: {{p.inBg}}">
-                  </div>
-                </sc-for>
-              </div>
-            </sc-for>
-          </div>
-          <span style="color: #3d3d3d">Tick a parameter to change it for this segment. Unticked ones follow the test. Same list as tab 3.</span>
-        </sc-if>
-        <sc-if value="{{pPio}}" hint-placeholder-val="{{ false }}">
-          <label style="display: flex; flex-direction: column; gap: 5px"><span style="font-weight: 600">Operator prompt (shown before this segment runs)</span><textarea rows="3" value="{{pPrompt}}" onChange="{{pSetPrompt}}" style="font: inherit; padding: 5px 8px; border: 1px solid #8a8a8a; resize: none"></textarea></label>
-          <div style="display: flex; gap: 10px; align-items: center"><div style="width: 110px; height: 66px; border: 1px dashed #8a8a8a; background: #f4f4f4; display: flex; align-items: center; justify-content: center; color: #555555">[picture]</div><button class="link">Choose picture…</button></div>
-          <label style="display: flex; gap: 8px; align-items: center">I/O at segment start <select value="{{pIo}}" onChange="{{pSetIo}}" style="font: inherit; padding: 3px 4px"><option>None</option><option>Set outputs…</option><option>Wait for input…</option></select></label>
-        </sc-if>
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px">
-        <button class="pri" onClick="{{closeDlg}}">OK</button>
-      </div>
-    </div>
-  </div>
-</sc-if>
-
-<sc-if value="{{dlgDelete}}" hint-placeholder-val="{{ false }}">
-  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
-    <div style="width: 440px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
-      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Delete segment</div>
-      <div style="padding: 16px 20px; line-height: 1.5">{{deleteText}}</div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
-        <button class="pri" style="background: #a3221b; border-color: #7d1913" onClick="{{doDelete}}">Delete</button>
-        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
-      </div>
-    </div>
-  </div>
-</sc-if>
-
-<sc-if value="{{dlgMp}}" hint-placeholder-val="{{ false }}">
-  <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20">
-    <div style="width: 660px; background: #ffffff; border: 1px solid #6e6e6e; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column">
-      <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #d0d0d0">Create Multi-Part Test</div>
-      <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
-        <div style="display: flex; gap: 10px; align-items: center"><span style="font-weight: 600">How many parts does the fixture hold?</span>
-          <sc-for list="{{mpChoices}}" as="m" hint-placeholder-count="3"><button onClick="{{m.pick}}" style="{{m.style}}">{{m.n}}</button></sc-for>
-        </div>
-        <div>Wiring for one part: <strong>Sensor Lead A-112</strong> (J1 8-pin, J2 12-pin)</div>
-        <div style="border: 1px solid #c4c4c4; display: flex; flex-direction: column; max-height: 220px; overflow-y: auto">
-          <div style="display: grid; grid-template-columns: 100px 1fr 1fr; padding: 6px 10px; background: #f7f7f7; border-bottom: 1px solid #d8d8d8; font-weight: 600"><span>Part</span><span>J1 plugs into</span><span>J2 plugs into</span></div>
-          <sc-for list="{{mpRows}}" as="r" hint-placeholder-count="4">
-            <div style="display: grid; grid-template-columns: 100px 1fr 1fr; padding: 6px 10px; border-bottom: 1px solid #ececec"><span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; background: {{r.color}}"></span>{{r.part}}</span><span>{{r.a}}</span><span>{{r.b}}</span></div>
-          </sc-for>
-        </div>
-        <div style="background: #eef5fc; border: 1px solid #b9d4ef; padding: 9px 12px; line-height: 1.45">This makes <strong>one normal test</strong> with {{mpN}} parts. They don't share pins, so they're tested together in one pass, and each part gets its own pass/fail, serial number and report.</div>
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; background: #f3f3f3; border-top: 1px solid #d0d0d0">
-        <button class="pri" onClick="{{doMp}}">Create Test</button>
-        <button class="btn" onClick="{{closeDlg}}">Cancel</button>
-      </div>
-    </div>
-  </div>
-</sc-if>
-
-</div>
-</template>
-<div id="wrap"><div id="root"></div></div>
-<script>
-class DCLogic{constructor(p){this.props=p||{};this.state={};}setState(o){Object.assign(this.state,o);scheduleRender();}}
-
-const PAL = ['#2f6db5', '#a8590f', '#23774a', '#7b4fb0', '#b0322a', '#17707f', '#8a5a2b', '#5f5f5f'];
-const PARAMS = [
-  { k: 'cr', grp: 'LV', name: 'Connection resistance', val: '2.0 Ω' },
-  { k: 'ir', grp: 'LV', name: 'Insulation resistance', val: '1000 MΩ' },
-  { k: 'ct', grp: 'LV', name: 'Component tolerance', val: '±5 %' },
-  { k: 'dw', grp: 'HV', name: 'Dielectric withstand', val: '1000 VDC' },
-  { k: 'dd', grp: 'HV', name: 'DW dwell time', val: '1.0 s' },
-  { k: 'dc', grp: 'HV', name: 'DW max current', val: '1.5 mA' },
-  { k: 'iv', grp: 'HV', name: 'Insulation test voltage', val: '500 VDC' },
-  { k: 'irr', grp: 'HV', name: 'HV insulation resistance', val: '500 MΩ' }
+/* ---------- parameters ---------- */
+const LVP = [
+  { k: 'wire', n: 'Default wire resistance', v: '5.0 Ω' },
+  { k: 'lvir', n: 'LV insulation resistance >', v: '500 kΩ' }
 ];
-function mkFixture(list) {
+const HVP = [
+  { k: 'dw', n: 'DW voltage', v: '500 V' },
+  { k: 'freq', n: 'DW frequency', v: 'DC' },
+  { k: 'cur', n: 'DW total current', v: '1.00 mA' },
+  { k: 'dwell', n: 'DW dwell time', v: '10 ms' },
+  { k: 'irv', n: 'IR voltage', v: '500 V' },
+  { k: 'irmin', n: 'IR greater than', v: '500 MΩ' }
+];
+const ALLP = LVP.concat(HVP);
+const pdef = (k) => ALLP.find((p) => p.k === k);
+const FLOW_DEFAULT = { iso: 'Rest of fixture' };
+
+/* ---------- demo data ---------- */
+function fixture() {
+  const list = [['$J1', 'DSUB-15 SOCKET', 15, 'Yes'], ['$J2', 'MATE-N-LOK UNIV. PLUG 6 POS.', 6, 'Yes'], ['$J3', 'MATE-N-LOK UNIV. PLUG 8 POS.', 8, 'Yes'], ['$J4', 'EURODIN-32', 32, 'Yes'], ['$J5', 'RING TERMINAL', 1, 'No']];
   let p = 1;
-  return list.map((c) => { const o = { name: c[0], type: c[1], pins: c[2], start: p, end: p + c[2] - 1 }; p += c[2]; return o; });
+  return list.map((c) => { const o = { ref: c[0], pn: c[1], pins: c[2], start: p, attached: c[2], smart: c[3] }; p += c[2]; return o; });
 }
-function demoFixture() {
-  return mkFixture([['J1', 'Molex 39-01-2080', 8], ['J2', 'Deutsch DT06-12S', 12], ['J5', 'Deutsch DT06-4S', 4], ['J7', 'TE 1-1564337', 16], ['J8', 'Molex 43025-0400', 4], ['J9', 'TE 1-1564337', 16], ['J10', 'Molex 39-01-2040', 4]]);
+const I = (t, f, to, p, label, aux) => ({ t, f, to, p: p || '', label: label || '', aux: aux || '' });
+function mkSeg(id, name, color, instr) { return { id, name, color, on: true, lv: true, hv: true, base: false, instr: instr || [], ov: {}, iso: 'Rest of fixture', prompt: '', io: 'None', runWhen: 'Always' }; }
+function mainInstr() {
+  return [I('WIRE', '$J1-1', '$J2-1', '', 'BATT +'), I('WIRE', '$J1-2', '$J2-2', '', 'IGN'), I('WIRE', '$J1-3', '$J2-3'), I('WIRE', '$J1-4', '$J1-9', '', 'GND'), I('TWISTED PAIR', '$J1-5', '$J2-5', '$J1-6 – $J2-6', 'CAN'), I('DIODE', '$J1-7', '$J1-8', 'Anode $J1-7, 0.4–0.9 V'), I('RESISTOR', '$J1-10', '$J1-11', '4.7 kΩ ±5%', 'R1'), I('WIRE', '$J1-12', '$J1-13', '', '', 'LED 3')];
 }
-function I(t, f, to, p) { return { t: t, f: f, to: to, p: p || '' }; }
-function seg(id, name, color, instr, extra) {
-  return { id: id, name: name, color: color, on: true, lv: true, hv: true, instr: instr, extra: extra || [], ov: {}, prompt: '', io: 'None' };
+function demoState() {
+  const s1 = mkSeg(1, 'Main harness', PAL[0], mainInstr());
+  const s2 = mkSeg(2, 'Door harness', PAL[1], [I('WIRE', '$J4-1', '$J4-17', '', 'LOCK +'), I('WIRE', '$J4-2', '$J4-18', '', 'LOCK -'), I('WIRE', '$J4-3', '$J4-19', '', 'WINDOW UP'), I('WIRE', '$J4-4', '$J4-20', '', 'WINDOW DN'), I('RESISTOR', '$J4-8', '$J4-24', '1 kΩ ±5%', 'R4'), I('CAPACITOR', '$J4-9', '$J4-25', '100 nF ±10%', 'C2')]);
+  s2.ov = { dw: '1500 V' };
+  const s3 = mkSeg(3, 'Switch S1 OFF', PAL[2], [I('OPEN', '$J3-3', '$J3-4', 'Switch open', 'S1')]);
+  s3.base = true;
+  const s4 = mkSeg(4, 'Switch S1 ON', PAL[3], [I('WIRE', '$J3-3', '$J3-4', 'Closed by S1', 'S1'), I('WIRE', '$J3-5', '$J3-6', 'Closed by S1', 'S1')]);
+  s4.base = true; s4.prompt = 'Press and hold S1, then press Start.';
+  return {
+    name: 'Door Module Harness', conns: fixture(), segs: [s1, s2, s3, s4],
+    base: [I('WIRE', '$J3-1', '$J3-2', '', 'S1 COM'), I('WIRE', '$J3-7', '$J3-8', '', 'S1 LED')],
+    configs: [{ name: 'Door only', segs: [2] }]
+  };
 }
-function demoSegs() {
-  const s1 = seg(1, 'Main harness', PAL[0], [I('WIRE', 'J1-1', 'J1-2'), I('WIRE', 'J1-4', 'J2-10'), I('WIRE', 'J2-1', 'J5-1'), I('WIRE', 'J2-2', 'J5-2'), I('DIODE', 'J2-11', 'J2-12', 'Anode J2-11'), I('RESISTOR', 'J1-6', 'J5-4', '4.7 kΩ ±5%')]);
-  const s2 = seg(2, 'Door harness', PAL[1], [I('WIRE', 'J7-1', 'J9-1'), I('WIRE', 'J7-2', 'J9-2'), I('WIRE', 'J7-3', 'J8-4'), I('WIRE', 'J7-5', 'J9-5'), I('RESISTOR', 'J8-1', 'J8-2', '1 kΩ ±5%')]);
-  s2.ov = { dw: '1500 VDC' };
-  const s3 = seg(3, 'Switch S1 ON', PAL[2], [I('WIRE', 'J2-1', 'J5-1'), I('WIRE', 'J2-2', 'J5-2'), I('WIRE', 'J2-7', 'J2-3', 'Closed by S1'), I('WIRE', 'J2-5', 'J2-8', 'Closed by S1')]);
-  s3.prompt = 'Press and hold S1, then press Start.';
-  return [s1, s2, s3];
+function newTestState() {
+  const s = mkSeg(1, 'Segment 1', PAL[0], mainInstr());
+  return { name: 'Untitled', conns: fixture().slice(0, 2), segs: [s], base: [], configs: [] };
 }
-function connOf(pin) { return pin.split('-')[0]; }
-function segConns(s) {
-  const set = [];
-  s.instr.forEach((i) => { [connOf(i.f), connOf(i.to)].forEach((c) => { if (set.indexOf(c) < 0) set.push(c); }); });
-  s.extra.forEach((c) => { if (set.indexOf(c) < 0) set.push(c); });
-  return set;
+
+/* ---------- state ---------- */
+const TEST0 = { method: 'Single Test', start: 'Start Button is Pressed', hvOn: true, fav: false, launch: '', showInstr: true, showGraphics: true, whichEnd: false, opInputs: false, storeErr: true, storeMeas: false, storeHV: false, serial: 'Not Used', vals: {} };
+let S = { screen: 'start', compact: false, sel: 'whole', shown: [], tab: 4, panel: true, menu: null, ctx: null, dlg: null, cats: { lv: false, hv: false, proc: false, win: false, rep: false, adv: false }, rowSel: 1, undo: null, hvAll: false, t: clone(TEST0), d: null, props: { id: 0, tab: 'gen' }, add: {}, delId: 0, connSel: 0, libSel: 5, attSel: 0, netTab: 'nets', search: '' };
+function load(kind) {
+  S.d = kind === 'demo' ? demoState() : newTestState();
+  S.t = clone(TEST0); S.screen = 'editor'; S.menu = null; S.ctx = null; S.dlg = null; S.undo = null;
+  if (kind === 'demo') { S.sel = 'whole'; S.shown = S.d.segs.map((x) => x.id); S.tab = 'ov'; } else { S.sel = 1; S.shown = [1]; S.tab = 4; }
 }
-function instrConns(s) {
-  const set = [];
-  s.instr.forEach((i) => { [connOf(i.f), connOf(i.to)].forEach((c) => { if (set.indexOf(c) < 0) set.push(c); }); });
-  return set;
-}
-function netsOf(s) {
-  const parent = {};
-  const find = (x) => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
-  s.instr.forEach((i) => {
-    if (i.t !== 'WIRE') { return; }
-    [i.f, i.to].forEach((p) => { if (parent[p] === undefined) { parent[p] = p; } });
-    const a = find(i.f); const b = find(i.to); if (a !== b) { parent[a] = b; }
+const segs = () => S.d.segs;
+const multi = () => segs().length > 1;
+const seg = (id) => segs().find((x) => x.id === id);
+const shownSegs = () => segs().filter((x) => S.shown.indexOf(x.id) >= 0);
+const focusSeg = () => (multi() && S.sel !== 'whole' && S.sel !== 'base' ? seg(S.sel) : null);
+const viewMode = () => { if (!multi()) return 'single'; if (S.sel === 'base') return 'base'; if (focusSeg() && shownSegs().length <= 1) return 'seg'; if (shownSegs().length === segs().length && S.sel === 'whole') return 'whole'; return 'several'; };
+const lbl = (s) => (segs().indexOf(s) + 1) + ' · ' + s.name;
+const tv = (k) => (S.t.vals[k] !== undefined ? S.t.vals[k] : pdef(k).v);
+const sv = (s, k) => (s && s.ov[k] !== undefined ? s.ov[k] : tv(k));
+const connOf = (pin) => pin.split('-')[0];
+function connsOfList(list) { const r = []; list.forEach((i) => [connOf(i.f), connOf(i.to)].forEach((c) => { if (r.indexOf(c) < 0) r.push(c); })); return r; }
+const baseConns = () => connsOfList(S.d.base || []);
+function segConns(s) { const r = connsOfList(s.instr); if (s.base) baseConns().forEach((c) => { if (r.indexOf(c) < 0) r.push(c); }); return r; }
+const usersOf = (ref) => segs().filter((s) => segConns(s).indexOf(ref) >= 0);
+function nextColor() { const used = segs().map((s) => s.color); return PAL.find((c) => used.indexOf(c) < 0) || PAL[segs().length % PAL.length]; }
+
+/* run plan: shared pins, shared wiring, LV settings, prompts force separate steps */
+function runPlan() {
+  const steps = [];
+  segs().filter((s) => s.on).forEach((s) => {
+    const cs = segConns(s);
+    const lvKey = LVP.map((p) => sv(s, p.k)).join('|');
+    let reason = '';
+    let placed = false;
+    if (!s.prompt && !s.base) {
+      for (const st of steps) {
+        if (st.solo) continue;
+        const clash = st.segs.find((o) => segConns(o).some((c) => cs.indexOf(c) >= 0));
+        const lvClash = st.segs.find((o) => LVP.map((p) => sv(o, p.k)).join('|') !== lvKey);
+        if (!clash && !lvClash) { st.segs.push(s); placed = true; break; }
+        if (!reason) reason = clash ? 'Shares ' + segConns(clash).filter((c) => cs.indexOf(c) >= 0).join(', ') + ' with ' + lbl(clash) : 'Different LV settings from ' + lbl(lvClash);
+      }
+    }
+    if (!placed) {
+      if (s.base) reason = 'Uses shared wiring, so it shares those pins';
+      else if (s.prompt) reason = 'Waits for the operator (prompt)';
+      steps.push({ segs: [s], solo: !!(s.prompt || s.base), reason: reason || 'First step' });
+    }
   });
-  const groups = {};
-  Object.keys(parent).forEach((p) => { const r = find(p); (groups[r] = groups[r] || []).push(p); });
-  return Object.keys(groups).map((k) => groups[k].sort());
+  return steps;
+}
+function planWhy(st) {
+  if (st.segs.length > 1) {
+    const hv = st.segs.some((s) => HVP.some((p) => s.ov[p.k] !== undefined));
+    return 'No shared pins and the same LV settings, so one pass covers them all' + (hv ? '. Different HV values are applied per net.' : '.');
+  }
+  return st.reason;
 }
 
-class Component extends DCLogic {
-  constructor(props) {
-    super(props);
-    this.state = { mode: 'start', dlg: null, fixture: demoFixture(), segs: [], shown: [], addTo: null, sel: 'whole', tab: 'ov', testName: '', menuId: null, propsId: null, propsTab: 'gen', delId: null, addName: '', addStart: 'empty', addSet: 'test', mpN: 4, testVals: {}, labels: { 'J7-1': 'DOOR LOCK +', 'J7-2': 'DOOR LOCK -', 'J7-3': 'WINDOW UP', 'J8-1': 'SPEAKER +', 'J9-1': 'MIRROR HEAT', 'J1-1': 'BATT +', 'J1-2': 'IGN', 'J2-1': 'S1 COM', 'J2-3': 'S1 NO' } };
+/* ---------- small builders ---------- */
+const btn = (ic, text, act, o) => { o = o || {}; return `<button class="b ${o.cls || ''}" data-a="${act}" ${o.id !== undefined ? `data-id="${o.id}"` : ''} ${o.dis ? 'disabled' : ''} title="${esc(o.tip || text)}">${ic ? IC[ic] : ''}${S.compact && o.iconOnly !== false && ic ? '' : (text ? `<span>${esc(text)}</span>` : '')}</button>`; };
+const sep = '<div class="sep"></div>';
+const tgl = (on, act, text, id) => `<span class="toggle ${on ? 'on' : ''}" data-a="${act}" ${id !== undefined ? `data-id="${id}"` : ''}><span class="sw"></span>${text ? esc(text) : ''}</span>`;
+const dot = (c) => `<span class="dot" style="background:${c}"></span>`;
+const chk = (on, act, id, tip) => `<input type="checkbox" class="chk" ${on ? 'checked' : ''} data-a="${act}" ${id !== undefined ? `data-id="${id}"` : ''} title="${esc(tip || '')}">`;
+
+/* ---------- rendering ---------- */
+function render() {
+  const root = document.getElementById('app');
+  const win = `<div class="win ${S.compact ? 'compact' : ''}" id="win">${titleBar()}${S.screen === 'start' ? startScreen() : editor()}${overlays()}</div>`;
+  root.innerHTML = win;
+  const g = document.querySelector('[data-keepscroll]');
+  if (g && window.__scroll) g.scrollTop = window.__scroll;
+}
+function titleBar() {
+  const n = S.d ? S.d.name : '';
+  return `<div class="title"><div class="ico">C</div><div class="cap">Test Program Editor${n ? ' - [' + esc(n) + ']' : ''}</div><div class="wb">&#8211;</div><div class="wb">&#9633;</div><div class="wb x">&#10005;</div></div>`;
+}
+function startScreen() {
+  return `<div class="start"><div style="font-size:20px;font-weight:600">Test Program Editor, modernized</div>
+  <div style="color:#555;max-width:640px;text-align:center;line-height:1.5">A clickable concept, not the real software. Everything you click works: tabs, the segment list, menus, dialogs and settings. Nothing is saved.</div>
+  <div style="display:flex;gap:14px"><button class="card" data-a="load" data-id="new"><b>Create a new test</b><span style="color:#555">A normal test, modernized. No segments until you add one.</span></button>
+  <button class="card" data-a="load" data-id="demo"><b>Open a segmented test</b><span style="color:#555">Door Module Harness: 4 segments, shared wiring and a switch state.</span></button></div></div>`;
+}
+const GROUP = { 1: 'fix', 2: 'fix', 6: 'fix', 4: 'wire', 5: 'wire', 3: 'set', ov: 'ov' };
+const SUBS = { fix: [[1, 'Connectors', 'plug'], [2, 'Attach', 'attach'], [6, 'Labels', 'label']], wire: [[4, 'Instructions', 'seq'], [5, 'Nets', 'hv']] };
+const LAST = { fix: 1, wire: 4, set: 3, ov: 'ov' };
+const SHORT = { ov: 'Overview', 1: '1 Connectors', 2: '2 Attach', 3: '3 Defaults', 4: '4 Instructions', 5: '5 Nets', 6: '6 Labels' };
+function editor() {
+  const m = multi();
+  const vm = viewMode();
+  const fs = focusSeg();
+  let tabs = [];
+  if (vm === 'whole') tabs.push(['ov', 'Overview', 'ovw']);
+  tabs = tabs.concat([['fix', '1. Fixture', 'plug'], ['wire', '2. Wiring', 'seq'], ['set', '3. Settings', 'gear']]);
+  if (S.tab === 'ov' && vm !== 'whole') S.tab = 4;
+  const grp = GROUP[S.tab];
+  LAST[grp] = S.tab;
+  const tabc = vm === 'seg' ? fs.color : (vm === 'base' ? BASEC : '');
+  const tabHtml = tabs.map((t) => `<button class="tab ${grp === t[0] ? 'on' : ''}" data-a="tab" data-id="${t[0]}" style="${tabc ? '--tabc:' + tabc : ''};display:inline-flex;align-items:center;gap:6px;padding:6px 16px">${IC[t[2]].replace('<svg', '<svg width="15" height="15"')}${esc(t[1])}</button>`).join('');
+  const page = pageContent(vm);
+  const stripe = vm === 'seg' ? `<div class="stripe" style="background:${fs.color}"></div>` : (vm === 'base' ? `<div class="stripe" style="background:${BASEC}"></div>` : '');
+  return `<div class="body">${m && !S.compact ? rail(vm) : ''}<div class="main">${m && S.compact ? compactPicker() : ''}<div class="tabs">${tabHtml}</div><div class="page">${stripe}${S.undo ? undoBar() : ''}${subBar(grp)}${segBar(vm)}${page}</div></div></div>
+  <div class="foot">${btn('done', 'Done', 'noop', { cls: 'std', iconOnly: false })}${btn('save', 'Save', 'noop', { cls: 'std' })}${btn('saveas', 'Save As', 'noop', { cls: 'std' })}${S.compact ? '' : btn('probe', 'Probe Points', 'noop', { cls: 'std', dis: true })}${multi() ? '' : btn('seg', 'Add Segment…', 'openAdd', { cls: 'std seg', tip: 'Split this test into segments (switch states, multiple parts, separate settings)' })}<div class="sp"></div>${btn('help', 'Help', 'noop', { cls: 'std' })}</div>
+  ${statusBar(vm)}`;
+}
+function statusBar(vm) {
+  const t = S.t;
+  const pts = S.d.conns.reduce((a, c) => a + c.pins, 0);
+  const fs = focusSeg();
+  let lv = 'LV on', hv = t.hvOn ? 'HV on' : 'HV off';
+  if (fs) { lv = fs.lv ? 'LV on' : 'LV off'; hv = fs.hv && t.hvOn ? 'HV on' + (fs.ov.dw ? ' (' + fs.ov.dw + ')' : '') : 'HV off'; }
+  const parts = [`<span title="Test method">${IC.gear}${esc(t.method)}</span>`, `<span>${esc(t.start)}</span>`, `<span>${lv} · ${hv}</span>`, `<span>${pts} points</span>`];
+  if (multi()) { const st = runPlan(); parts.push(`<span>${segs().length} segments · runs in ${st.length} step${st.length > 1 ? 's' : ''}</span>`); }
+  if (S.compact) parts.splice(1, 1);
+  return `<div class="status">${parts.join('')}</div>`;
+}
+function undoBar() {
+  return `<div class="undo">${IC.info.replace('<svg', '<svg width="16" height="16" style="color:#005fb8"')}<span>${esc(S.undo)}</span><div class="sp"></div><button class="b" data-a="undoAdd">${IC.undo}<span>Undo</span></button><button class="ib" data-a="hideUndo" title="Close">${IC.close}</button></div>`;
+}
+function subBar(grp) {
+  const subs = SUBS[grp];
+  if (!subs) return '';
+  const note = grp === 'fix' ? (multi() ? 'Shared by every segment' : 'Connectors, where they attach, and pin labels') : (multi() ? 'Per segment' : 'What the cable should be');
+  return `<div class="subtabs">${subs.map((x) => `<button class="sub ${S.tab === x[0] ? 'on' : ''}" data-a="tab" data-id="${x[0]}">${IC[x[2]].replace('<svg', '<svg width="14" height="14"')}${x[1]}</button>`).join('')}<span class="subnote">${note}</span></div>`;
+}
+function segBar(vm) {
+  const fs = focusSeg();
+  if (vm === 'seg') {
+    const g = GROUP[S.tab];
+    const txt = g === 'wire' ? (S.tab === 4 ? 'New instructions are added to this segment.' : 'Nets the tester expects while this segment runs.') : (g === 'set' ? 'Settings for this segment. Anything not changed follows the global settings.' : 'The fixture is shared. Highlighted: what this segment uses. Changes here apply to every segment.');
+    return `<div class="segbar"><span class="chip" style="background:${fs.color}">${esc(lbl(fs))}</span><span style="color:#555">${txt}</span><div style="flex:1"></div><button class="lnk" data-a="whole">Show all segments</button></div>`;
   }
-  upSeg(id, patch) {
-    this.setState({ segs: this.state.segs.map((s) => (s.id === id ? Object.assign({}, s, patch) : s)) });
+  if (vm === 'base') return `<div class="segbar"><span class="chip" style="background:${BASEC}">Shared wiring</span><span style="color:#555">Wires present in every segment that uses shared wiring (switch and relay states).</span><div style="flex:1"></div><button class="lnk" data-a="whole">Show all segments</button></div>`;
+  if (vm === 'several') {
+    return `<div class="segbar"><b>Showing</b>${shownSegs().map((s) => `<span class="chip" style="background:${s.color}">${esc(lbl(s))}</span>`).join('')}${shownSegs().length ? '' : '<span style="color:#555">No segments shown. Click the eye icons on the left.</span>'}<div style="flex:1"></div><button class="lnk" data-a="whole">Show all segments</button></div>`;
   }
-  getSeg(id) { return this.state.segs.find((s) => s.id === id); }
-  testVal(k) { const v = this.state.testVals[k]; return v !== undefined ? v : PARAMS.find((p) => p.k === k).val; }
-  label(s) { return this.state.segs.indexOf(s) + 1 + ' · ' + s.name; }
-  nextColor() { const used = this.state.segs.map((s) => s.color); const c = PAL.find((p) => used.indexOf(p) < 0); return c || PAL[this.state.segs.length % PAL.length]; }
-
-  renderVals() {
-    const st = this.state;
-    const segs = st.segs;
-    const multi = segs.length > 1;
-    const shownIds = st.shown.filter((id) => segs.some((s) => s.id === id));
-    const isShown = (s) => shownIds.indexOf(s.id) >= 0;
-    const shownSegs = segs.filter(isShown);
-    const selSeg = multi && shownSegs.length === 1 ? shownSegs[0] : null;
-    const segMode = !!selSeg;
-    const wholeMode = multi && shownSegs.length === segs.length;
-    const severalMode = multi && !segMode && !wholeMode;
-    const self = this;
-
-    const stop = (e) => { e.stopPropagation(); };
-    const goStart = () => this.setState({ mode: 'start', dlg: null, menuId: null });
-    const closeDlg = () => this.setState({ dlg: null });
-    const selWhole = () => this.setState({ sel: 'whole', shown: segs.map((s) => s.id), tab: 'ov', menuId: null });
-
-    // run groups
-    const enabled = segs.filter((s) => s.on);
-    const groups = [];
-    enabled.forEach((s) => {
-      const cs = segConns(s);
-      const g = groups.find((gr) => gr.every((o) => segConns(o).every((c) => cs.indexOf(c) < 0)));
-      if (g) { g.push(s); } else { groups.push([s]); }
-    });
-    const groupsOut = groups.map((g, i) => ({
-      title: 'Step ' + (i + 1) + (g.length > 1 ? ' · tested together' : ' · on its own'),
-      items: g.map((s) => ({ color: s.color, label: self.label(s) })),
-      note: g.length > 1 ? 'No shared pins, so one pass covers them all' : (groups.length > 1 && i > 0 ? 'Shares pins with an earlier step, so it runs separately' : 'Runs in one pass'),
-      bg: g.length > 1 ? '#eef5fc' : '#fafafa', border: g.length > 1 ? '#9fc2e6' : '#c4c4c4'
-    }));
-    const offCount = segs.length - enabled.length;
-    let runSummary = groups.map((g) => g.map((s) => segs.indexOf(s) + 1).join(' + ')).join(', then ');
-    runSummary = groups.length ? 'Runs: ' + runSummary + (offCount ? ' · ' + offCount + ' off' : '') : 'All segments are off';
-
-    // segment rows
-    const segRows = segs.map((s, idx) => {
-      const shownHere = multi && !wholeMode && isShown(s);
-      const selected = shownHere;
-      const changed = Object.keys(s.ov).length;
-      const tags = [];
-      if (!s.lv && s.hv) { tags.push('HV only'); }
-      if (s.lv && !s.hv) { tags.push('LV only'); }
-      if (!s.lv && !s.hv) { tags.push('LV and HV off'); }
-      if (changed) { tags.push(changed + ' setting' + (changed > 1 ? 's' : '') + ' changed'); }
-      if (s.prompt) { tags.push('prompt'); }
-      if (!s.on) { tags.unshift('OFF'); }
-      return {
-        label: (idx + 1) + ' · ' + s.name, color: s.color, on: s.on, shown: isShown(s), weight: selected ? 600 : 400,
-        sub: s.instr.length + ' instructions' + (tags.length ? ' · ' + tags.join(' · ') : ''),
-        count: s.instr.length, conns: segConns(s).join(', ') || 'none',
-        lvhv: (s.lv ? 'LV' : '–') + ' / ' + (s.hv ? 'HV' : '–'),
-        setText: (changed ? Object.keys(s.ov).map((k) => PARAMS.find((p) => p.k === k).name + ' ' + s.ov[k]).join(', ') : 'Same as test') + (s.prompt ? ' · prompt' : ''),
-        setColor: changed ? '#8a4b00' : '#3d3d3d',
-        rowStyle: 'display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px 8px ' + (selected ? '7px' : '12px') + '; border-bottom: 1px solid #ececec; cursor: pointer; ' + (selected ? 'background: ' + s.color + '22; border-left: 5px solid ' + s.color + ';' : 'background: #ffffff;'),
-        dotsStyle: 'width: 26px; height: 24px; padding: 0; font: inherit; font-size: 16px; line-height: 1; border-radius: 3px; cursor: pointer; color: #333333; flex-shrink: 0; ' + (st.menuId === s.id ? 'border: 1px solid #6e6e6e; background: #ffffff;' : 'border: 1px solid transparent; background: transparent;'),
-        select: () => self.setState({ sel: s.id, shown: [s.id], tab: st.tab === 'ov' ? 4 : st.tab, menuId: null }),
-        toggleOn: () => self.upSeg(s.id, { on: !s.on }),
-        toggleShown: () => { const arr = isShown(s) ? shownIds.filter((id) => id !== s.id) : shownIds.concat([s.id]); self.setState({ shown: arr, sel: isShown(s) ? (arr[0] || 'whole') : s.id, menuId: null }); },
-        openMenu: (e) => { e.stopPropagation(); self.setState({ menuId: st.menuId === s.id ? null : s.id }); }
-      };
-    });
-    const menuIdx = segs.findIndex((s) => s.id === st.menuId);
-    const menuTop = (150 + menuIdx * 52) + 'px';
-    const moveSeg = (dir) => {
-      const arr = segs.slice(); const i = menuIdx; const j = i + dir;
-      if (j < 0 || j >= arr.length) { self.setState({ menuId: null }); return; }
-      const t = arr[i]; arr[i] = arr[j]; arr[j] = t; self.setState({ segs: arr, menuId: null });
-    };
-
-    // tabs
-    const tabDefs = [];
-    if (wholeMode) { tabDefs.push(['ov', 'Overview']); }
-    [[1, '1. Define Connectors'], [2, '2. Attach Connectors'], [3, '3. Set Test Defaults'], [4, '4. Define Instructions'], [5, '5. View Nets'], [6, '6. Label Points']].forEach((t) => tabDefs.push(t));
-    let tab = st.tab;
-    if (tab === 'ov' && !wholeMode) { tab = 4; }
-    const tabs = tabDefs.map((t) => {
-      const act = t[0] === tab;
-      const col = segMode && act ? selSeg.color : '#c4c4c4';
-      return { label: t[1], click: () => self.setState({ tab: t[0], menuId: null }), style: 'padding: 7px 9px; font: inherit; font-size: 12px; cursor: pointer; border: 1px solid ' + col + '; border-bottom: ' + (act ? '1px solid #ffffff' : 'none') + '; background: ' + (act ? (segMode ? selSeg.color + '22' : '#ffffff') : '#e4e4e4') + '; font-weight: ' + (act ? 600 : 400) + '; color: #1a1a1a' };
-    });
-    const frameStyle = 'flex-grow: 1; min-height: 0; background: #ffffff; display: flex; flex-direction: column; padding: 10px; gap: 10px; box-sizing: border-box; ' + (segMode ? 'border: 4px solid ' + selSeg.color + ';' : 'border: 1px solid #c4c4c4;');
-
-    // connectors tab
-    const scope = multi ? shownSegs : segs;
-    const users = (cname) => segs.filter((s) => segConns(s).indexOf(cname) >= 0);
-    const connRows = st.fixture.map((c) => {
-      const us = users(c.name);
-      if (segMode) {
-        const locked = instrConns(selSeg).indexOf(c.name) >= 0;
-        const use = locked || selSeg.extra.indexOf(c.name) >= 0;
-        const others = us.filter((s) => s.id !== selSeg.id);
-        return {
-          showBox: true, use: use, locked: locked, name: c.name, type: c.type, pins: c.pins, range: c.start + '–' + c.end,
-          chips: [], why: locked ? 'Used by this segment\'s instructions' : (use ? 'Added by hand: checked for shorts' : (others.length ? 'In ' + others.map((s) => self.label(s)).join(', ') : 'Not in any segment')),
-          bg: use ? selSeg.color + '18' : '#ffffff', fg: use ? '#1a1a1a' : '#555555', weight: use ? 600 : 400,
-          toggle: () => { if (locked) { return; } const ex = selSeg.extra.slice(); const k = ex.indexOf(c.name); if (k >= 0) { ex.splice(k, 1); } else { ex.push(c.name); } self.upSeg(selSeg.id, { extra: ex }); }
-        };
-      }
-      return {
-        showBox: false, use: false, locked: true, name: c.name, type: c.type, pins: c.pins, range: c.start + '–' + c.end,
-        chips: multi ? us.filter(isShown).map((s) => ({ color: s.color, label: (segs.indexOf(s) + 1) + ' ' + s.name })) : [],
-        why: multi && !us.length ? 'Not in any segment, so not tested' : (severalMode && !us.some(isShown) ? 'Only in hidden segments' : ''),
-        bg: multi && !us.length ? '#fff8eb' : '#ffffff', fg: multi && !us.length ? '#7a4300' : (severalMode && !us.some(isShown) ? '#8a8a8a' : '#1a1a1a'), weight: 400, toggle: () => {}
-      };
-    });
-
-    // attach tab
-    const attRows = st.fixture.map((c) => {
-      const us = users(c.name); const su = us.filter(isShown); const focus = multi && !wholeMode;
-      const inSel = focus && su.length > 0;
-      return { name: c.name, range: c.start + '–' + c.end, segs: us.length ? us.map((s) => segs.indexOf(s) + 1).join(', ') : 'none', bg: inSel ? su[0].color + '22' : '#ffffff', fg: !us.length && multi ? '#7a4300' : (focus && !inSel ? '#666666' : '#1a1a1a'), weight: inSel ? 600 : 400 };
-    });
-    const cells = [];
-    st.fixture.forEach((c) => {
-      const us = users(c.name);
-      for (let n = c.start; n <= c.end; n++) {
-        let bg = '#e6e6e6'; let fg = '#555555'; let bd = '#c4c4c4';
-        const su = multi ? us.filter(isShown) : us;
-        if (!us.length && multi) { bg = '#fff0d2'; fg = '#7a4300'; bd = '#e6c48a'; }
-        else if (su.length === 1) { bg = su[0].color; fg = '#ffffff'; bd = su[0].color; }
-        else if (su.length > 1) { bg = 'linear-gradient(135deg, ' + su[0].color + ' 50%, ' + su[1].color + ' 50%)'; fg = '#ffffff'; bd = '#1a1a1a'; }
-        cells.push({ n: n, con: n === c.start ? c.name : '', bg: bg, fg: fg, bd: bd });
-      }
-    });
-    const pointCount = st.fixture.length ? st.fixture[st.fixture.length - 1].end : 0;
-
-    // settings
-    const paramRows = PARAMS.map((p) => {
-      const tv = self.testVal(p.k);
-      if (!segMode) {
-        const diffs = severalMode ? shownSegs.filter((s) => s.ov[p.k] !== undefined).map((s) => (segs.indexOf(s) + 1) + ' · ' + s.name + ': ' + s.ov[p.k]) : [];
-        return { grp: p.grp, name: p.name, val: tv, locked: false, src: diffs.length ? 'Changed in ' + diffs.join('; ') : (severalMode ? 'Same in every segment shown' : (multi ? 'Test default' : '')), srcColor: diffs.length ? '#8a4b00' : '#555555', bg: '#ffffff', weight: 400, inBg: '#ffffff', opacity: 1, hasAct: false, actLabel: '', act: () => {},
-          edit: (e) => { const tvs = Object.assign({}, st.testVals); tvs[p.k] = e.target.value; self.setState({ testVals: tvs }); } };
-      }
-      const phaseOff = (p.grp === 'LV' && !selSeg.lv) || (p.grp === 'HV' && !selSeg.hv);
-      const over = selSeg.ov[p.k] !== undefined;
-      return {
-        grp: p.grp, name: p.name, val: over ? selSeg.ov[p.k] : tv, locked: !over || phaseOff,
-        src: over ? 'Changed for this segment (test: ' + tv + ')' : 'Same as test', srcColor: over ? '#8a4b00' : '#555555',
-        bg: over ? '#fff4e2' : '#ffffff', weight: over ? 600 : 400, inBg: over ? '#ffffff' : '#f4f4f4', opacity: phaseOff ? 0.45 : 1,
-        hasAct: !phaseOff, actLabel: over ? 'Reset' : 'Change',
-        act: () => { const ov = Object.assign({}, selSeg.ov); if (over) { delete ov[p.k]; } else { ov[p.k] = tv; } self.upSeg(selSeg.id, { ov: ov }); },
-        edit: (e) => { const ov = Object.assign({}, selSeg.ov); ov[p.k] = e.target.value; self.upSeg(selSeg.id, { ov: ov }); }
-      };
-    });
-    const lvhvWarn = segMode ? (!selSeg.lv && !selSeg.hv ? 'Nothing is tested in this segment unless it has device steps' : (!selSeg.lv ? 'HV only: continuity isn\'t checked; the report says "HV only"' : (!selSeg.hv ? 'LV only: its nets are still held at the HV sink while other segments are hipotted' : ''))) : '';
-
-    // instructions
-    const instrRows = [];
-    scope.forEach((s) => {
-      s.instr.forEach((i, k) => instrRows.push({ t: i.t, f: i.f, to: i.to, p: i.p, color: multi ? s.color : '#ffffff', seg: multi ? (segs.indexOf(s) + 1) + ' · ' + s.name : '',
-        del: () => { const ins = s.instr.slice(); ins.splice(k, 1); self.upSeg(s.id, { instr: ins }); } }));
-    });
-    const addToSeg = severalMode ? (shownSegs.find((s) => s.id === st.addTo) || shownSegs.find((s) => s.id === st.sel) || shownSegs[0] || null) : null;
-    const target = segMode ? selSeg : (severalMode ? addToSeg : (!multi ? segs[0] : null));
-    const addInstr = () => {
-      if (!target) { return; }
-      let conn = segConns(target)[0];
-      if (!conn) { const free = st.fixture.find((c) => !users(c.name).length) || st.fixture[0]; conn = free.name; }
-      const fx = st.fixture.find((c) => c.name === conn);
-      const used = {}; segs.forEach((s) => s.instr.forEach((i) => { used[i.f] = 1; used[i.to] = 1; }));
-      const freePins = []; for (let n = 1; n <= fx.pins; n++) { if (!used[conn + '-' + n]) { freePins.push(conn + '-' + n); } }
-      const a = freePins[0] || conn + '-1'; const b = freePins[1] || conn + '-2';
-      self.upSeg(target.id, { instr: target.instr.concat([I('WIRE', a, b)]) });
-    };
-
-    // nets
-    const netRows = [];
-    let nn = 1;
-    scope.forEach((s) => netsOf(s).forEach((n) => netRows.push({ name: 'N' + (nn++), pins: n.join(', '), seg: multi ? (segs.indexOf(s) + 1) + ' · ' + s.name : '', color: s.color })));
-
-    // labels
-    const labelConns = multi && !wholeMode ? st.fixture.map((c) => c.name).filter((cn) => shownSegs.some((s) => segConns(s).indexOf(cn) >= 0)) : st.fixture.map((c) => c.name);
-    const labelRows = [];
-    labelConns.forEach((cn) => {
-      const fx = st.fixture.find((c) => c.name === cn); if (!fx) { return; }
-      const us = users(cn);
-      for (let n = 1; n <= fx.pins && labelRows.length < 60; n++) {
-        const pin = cn + '-' + n;
-        labelRows.push({ pin: pin, pt: fx.start + n - 1, label: st.labels[pin] || '', used: us.map((s) => (segs.indexOf(s) + 1) + ' · ' + s.name).join(', ') || (multi ? 'none' : ''),
-          edit: (e) => { const lb = Object.assign({}, st.labels); lb[pin] = e.target.value; self.setState({ labels: lb }); } });
-      }
-    });
-
-    // add dialog
-    const copySrc = selSeg || segs[segs.length - 1];
-    const freeList = st.fixture.filter((c) => !users(c.name).length).map((c) => c.name);
-    const doAdd = () => {
-      const id = Math.max.apply(null, segs.map((s) => s.id).concat([0])) + 1;
-      let instr = []; let extra = [];
-      if (st.addStart === 'copy' && copySrc) { instr = copySrc.instr.map((i) => Object.assign({}, i)); }
-      if (st.addStart === 'conns') { extra = freeList.slice(); }
-      const ns = seg(id, st.addName || ('Segment ' + (segs.length + 1)), self.nextColor(), instr, extra);
-      if (st.addSet === 'copy' && copySrc) { ns.ov = Object.assign({}, copySrc.ov); }
-      let list = segs;
-      if (segs.length === 1 && segs[0].name === 'Main harness') { list = [Object.assign({}, segs[0], { name: 'Segment 1' })]; }
-      self.setState({ segs: list.concat([ns]), sel: id, shown: [id], tab: 4, dlg: null, menuId: null });
-    };
-
-    // props dialog
-    const ps = st.propsId ? this.getSeg(st.propsId) : null;
-    const pTabs = [['gen', 'General'], ['par', 'Test Parameters'], ['pio', 'Prompt & I/O']].map((t) => {
-      const act = st.propsTab === t[0];
-      return { label: t[1], click: () => self.setState({ propsTab: t[0] }), style: 'padding: 6px 14px; font: inherit; cursor: pointer; border: 1px solid #c4c4c4; border-bottom: ' + (act ? '1px solid #ffffff' : 'none') + '; background: ' + (act ? '#ffffff' : '#e4e4e4') + '; font-weight: ' + (act ? 600 : 400) + '; color: #1a1a1a' };
-    });
-    const pCols = ps ? ['LV', 'HV'].map((g) => {
-      const on = g === 'LV' ? ps.lv : ps.hv;
-      return {
-        title: g === 'LV' ? 'Test low voltage' : 'Test high voltage', on: on,
-        src: on ? 'Same as test' : 'Changed (test: on)', srcColor: on ? '#555555' : '#8a4b00',
-        toggle: () => self.upSeg(ps.id, g === 'LV' ? { lv: !ps.lv } : { hv: !ps.hv }),
-        warn: !on, warnText: g === 'LV' ? 'This segment is HV only. Continuity isn\'t checked, and the report says "HV only". Needs edit permission.' : 'No hipot for this segment. Its nets are still held at the HV sink while other segments are hipotted.',
-        rows: PARAMS.filter((p) => p.grp === g).map((p) => {
-          const tv = self.testVal(p.k); const over = ps.ov[p.k] !== undefined;
-          return { name: p.name, over: over, val: over ? ps.ov[p.k] : tv, locked: !over || !on, src: over ? 'Changed (test: ' + tv + ')' : 'Same as test', srcColor: over ? '#8a4b00' : '#555555', bg: over ? '#fff4e2' : '#ffffff', weight: over ? 600 : 400, inBg: over ? '#ffffff' : '#f4f4f4', opacity: on ? 1 : 0.45,
-            toggleOver: () => { const ov = Object.assign({}, ps.ov); if (over) { delete ov[p.k]; } else { ov[p.k] = tv; } self.upSeg(ps.id, { ov: ov }); },
-            edit: (e) => { const ov = Object.assign({}, ps.ov); ov[p.k] = e.target.value; self.upSeg(ps.id, { ov: ov }); } };
-        })
-      };
-    }) : [];
-
-    // multipart
-    const mpRows = [];
-    for (let k = 1; k <= st.mpN; k++) { mpRows.push({ part: 'Part ' + k, a: 'J' + (2 * k - 1), b: 'J' + (2 * k), color: PAL[(k - 1) % PAL.length] }); }
-    const doMp = () => {
-      const fx = []; const ss = [];
-      for (let k = 1; k <= st.mpN; k++) {
-        const a = 'J' + (2 * k - 1); const b = 'J' + (2 * k);
-        fx.push([a, 'Molex 39-01-2080', 8]); fx.push([b, 'Deutsch DT06-12S', 12]);
-        ss.push(seg(k, 'Part ' + k, PAL[(k - 1) % PAL.length], [I('WIRE', a + '-1', b + '-1'), I('WIRE', a + '-2', b + '-2'), I('WIRE', a + '-3', b + '-5'), I('RESISTOR', a + '-6', b + '-9', '10 kΩ ±1%')]));
-      }
-      self.setState({ mode: 'editor', dlg: null, fixture: mkFixture(fx), segs: ss, sel: 'whole', tab: 'ov', testName: 'Sensor Lead A-112 (' + st.mpN + '-up)', menuId: null, testVals: {}, shown: ss.map((s) => s.id) });
-    };
-
-    return {
-      stop: stop, goStart: goStart, closeDlg: closeDlg, selWhole: selWhole,
-      isStart: st.mode === 'start', isEditor: st.mode === 'editor',
-      openDemo: () => self.setState({ mode: 'editor', fixture: demoFixture(), segs: demoSegs(), shown: [1, 2, 3], sel: 'whole', tab: 'ov', testName: 'Door Module Harness', dlg: null, menuId: null, testVals: {} }),
-      newTest: () => { const s = demoSegs()[0]; self.setState({ mode: 'editor', fixture: demoFixture(), segs: [s], shown: [s.id], sel: s.id, tab: 4, testName: 'My Test', dlg: null, menuId: null, testVals: {} }); },
-      openMP: () => self.setState({ dlg: 'mp' }),
-      testName: st.testName, showRail: multi, showBottomAdd: !multi, runSummary: runSummary,
-      wholeStyle: 'display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px 9px ' + (wholeMode ? '7px' : '12px') + '; border: none; border-top: 1px solid #e2e2e2; border-bottom: 1px solid #ececec; font: inherit; cursor: pointer; text-align: left; color: #1a1a1a; ' + (wholeMode ? 'background: #d6e8f8; border-left: 5px solid #0b5cad;' : 'background: #ffffff;'),
-      segRows: segRows, menuOpen: st.menuId !== null && menuIdx >= 0, menuTop: menuTop,
-      menuEdit: () => self.setState({ dlg: 'props', propsId: st.menuId, propsTab: 'gen', menuId: null }),
-      menuDup: () => { const s = self.getSeg(st.menuId); const id = Math.max.apply(null, segs.map((x) => x.id)) + 1; const c = Object.assign({}, s, { id: id, name: s.name + ' (copy)', color: self.nextColor(), instr: s.instr.map((i) => Object.assign({}, i)), extra: s.extra.slice(), ov: Object.assign({}, s.ov) }); const arr = segs.slice(); arr.splice(menuIdx + 1, 0, c); self.setState({ segs: arr, menuId: null, sel: id, shown: [id] }); },
-      menuUp: () => moveSeg(-1), menuDown: () => moveSeg(1),
-      menuDelete: () => self.setState({ dlg: 'delete', delId: st.menuId, menuId: null }),
-      openAdd: () => self.setState({ dlg: 'add', addName: 'Segment ' + (segs.length + 1), addStart: 'empty', addSet: 'test', menuId: null }),
-      tabs: tabs, frameStyle: frameStyle,
-      showSegBanner: segMode, selColor: segMode ? selSeg.color : '#ffffff', selLabel: segMode ? self.label(selSeg) : '',
-      bannerText: tab === 4 ? 'New instructions are added to this segment' : (tab === 2 || tab === 6 ? 'Shared by every segment; this segment is highlighted' : (tab === 3 ? 'Settings for this segment' : '')),
-      showSeveralBanner: severalMode,
-      shownChips: shownSegs.map((s) => ({ color: s.color, label: self.label(s) })),
-      severalText: shownSegs.length ? 'Each row and pin is marked in its segment\'s colour. Hidden segments still run.' : 'Nothing shown. Tick segments on the left.',
-      showAddTo: severalMode && shownSegs.length > 0, setAddTo: (e) => self.setState({ addTo: Number(e.target.value) }),
-      addToColor: addToSeg ? addToSeg.color : '#c4c4c4',
-      addToOpts: shownSegs.map((s) => { const on = addToSeg && addToSeg.id === s.id; return { label: self.label(s), pick: () => self.setState({ addTo: s.id }), style: 'padding: 4px 10px; font: inherit; cursor: pointer; border-radius: 3px; border: 2px solid ' + s.color + '; ' + (on ? 'background: ' + s.color + '; color: #ffffff; font-weight: 600' : 'background: #ffffff; color: #1a1a1a') }; }),
-      showWholeBanner: wholeMode && tab !== 'ov', wholeBannerText: 'Whole test: everything in the test is shown. Pick a segment on the left to focus on it.',
-      tabOv: tab === 'ov', tab1: tab === 1, tab2: tab === 2, tab3: tab === 3, tab4: tab === 4, tab5: tab === 5, tab6: tab === 6,
-      groups: groupsOut,
-      useHead: segMode ? 'Use' : '', whyHead: segMode ? 'Why' : (multi ? 'Used by segments' : ''), connRows: connRows,
-      connNote: segMode ? 'Connectors used by this segment\'s instructions are ticked and locked. Tick another to include it (for example to shorts-check unused pins). Unticking only removes it from this segment.' : (multi ? 'These are the fixture\'s connectors. Every segment shares them and their tester points.' : ''),
-      attRows: attRows, cells: cells, pointCount: pointCount,
-      attNote: multi ? 'One attachment map for the whole test. Changes here apply to every segment.' : '',
-      segMode: segMode, selLv: segMode ? selSeg.lv : true, selHv: segMode ? selSeg.hv : true,
-      toggleSelLv: () => self.upSeg(selSeg.id, { lv: !selSeg.lv }), toggleSelHv: () => self.upSeg(selSeg.id, { hv: !selSeg.hv }),
-      lvhvWarn: lvhvWarn, paramRows: paramRows,
-      paramNote: severalMode ? 'Comparing the segments shown. Show one segment to change its settings.' : segMode ? 'Click Change to set a value for this segment only; Reset goes back to the test\'s value.' : (multi ? 'These are the test\'s values. Segments use them unless they change them.' : ''),
-      instrRows: instrRows, segHead: multi ? 'Segment' : '', noInstr: instrRows.length === 0,
-      addInstr: addInstr, cantAdd: !target, addHint: target ? '' : 'Pick a segment on the left to add instructions to it.',
-      netRows: netRows, netNote: segMode ? 'Nets the tester expects while this segment runs. The other segments\' points stay in their own nets, so shorts to them are still caught.' : 'All nets in the test, by segment.',
-      labelRows: labelRows,
-      dlgAdd: st.dlg === 'add', addName: st.addName, setAddName: (e) => self.setState({ addName: e.target.value }),
-      startEmpty: st.addStart === 'empty', startCopy: st.addStart === 'copy', startConns: st.addStart === 'conns',
-      pickEmpty: () => self.setState({ addStart: 'empty' }), pickCopy: () => self.setState({ addStart: 'copy' }), pickConns: () => self.setState({ addStart: 'conns' }),
-      copyName: copySrc ? self.label(copySrc) : '', freeConns: freeList.join(', ') || 'none free',
-      setTest: st.addSet === 'test', setCopy: st.addSet === 'copy', pickSetTest: () => self.setState({ addSet: 'test' }), pickSetCopy: () => self.setState({ addSet: 'copy' }),
-      doAdd: doAdd,
-      dlgProps: st.dlg === 'props' && !!ps, pColor: ps ? ps.color : '#ffffff', pLabel: ps ? self.label(ps) : '', pTabs: pTabs,
-      pGen: st.propsTab === 'gen', pPar: st.propsTab === 'par', pPio: st.propsTab === 'pio',
-      pName: ps ? ps.name : '', pSetName: (e) => self.upSeg(ps.id, { name: e.target.value }),
-      palette: PAL.map((c) => ({ color: c, border: ps && ps.color === c ? '3px solid #1a1a1a' : '1px solid #1a1a1a', pick: () => self.upSeg(ps.id, { color: c }) })),
-      pOn: ps ? ps.on : true, pToggleOn: () => self.upSeg(ps.id, { on: !ps.on }),
-      pSummary: ps ? 'Uses ' + (segConns(ps).join(', ') || 'no connectors') + ' · ' + ps.instr.length + ' instructions' : '',
-      pCols: pCols, pPrompt: ps ? ps.prompt : '', pSetPrompt: (e) => self.upSeg(ps.id, { prompt: e.target.value }),
-      pIo: ps ? ps.io : 'None', pSetIo: (e) => self.upSeg(ps.id, { io: e.target.value }),
-      dlgDelete: st.dlg === 'delete',
-      deleteText: st.delId && self.getSeg(st.delId) ? 'Delete ' + self.label(self.getSeg(st.delId)) + '? Its ' + self.getSeg(st.delId).instr.length + ' instructions are deleted. Its connectors stay in the test.' : '',
-      doDelete: () => { const arr = segs.filter((s) => s.id !== st.delId); self.setState({ segs: arr, shown: arr.map((s) => s.id), dlg: null, sel: arr.length > 1 ? 'whole' : (arr[0] ? arr[0].id : 'whole'), tab: arr.length > 1 ? 'ov' : 4 }); },
-      dlgMp: st.dlg === 'mp', mpN: st.mpN, mpRows: mpRows, doMp: doMp,
-      mpChoices: [2, 4, 8].map((n) => ({ n: n, pick: () => self.setState({ mpN: n }), style: 'padding: 5px 14px; font: inherit; cursor: pointer; border-radius: 3px; ' + (st.mpN === n ? 'background: #0b5cad; color: #ffffff; border: 1px solid #08427c; font-weight: 600' : 'background: #fdfdfd; color: #1a1a1a; border: 1px solid #adadad') }))
-    };
-  }
+  return '';
+}
+function rail(vm) {
+  const st = runPlan();
+  const steps = st.map((x) => x.segs.map((s) => segs().indexOf(s) + 1).join('+')).join(' → ');
+  const rows = segs().map((s, i) => {
+    const focus = (vm === 'seg' && focusSeg().id === s.id) || (vm === 'several' && S.shown.indexOf(s.id) >= 0);
+    const tags = [s.instr.length + ' instr.'];
+    if (!s.lv && s.hv) tags.push('HV only'); if (s.lv && !s.hv) tags.push('LV only');
+    if (s.base) tags.push('shared wiring');
+    const ch = Object.keys(s.ov).length; if (ch) tags.push(ch + ' changed');
+    if (s.prompt) tags.push('prompt');
+    const shown = S.shown.indexOf(s.id) >= 0;
+    return `<div class="rrow ${focus ? 'focus' : ''}" data-a="focus" data-id="${s.id}" style="--rbg:${s.color}1f;${focus ? 'border-left-color:' + s.color : ''}">
+      ${chk(s.on, 'toggleOn', s.id, 'Segment on (tested)')}
+      <span class="dot" style="background:${s.color};width:12px;height:12px;margin-top:2px"></span>
+      <span class="nm"><b class="${s.on ? '' : 'off'}">${i + 1} · ${esc(s.name)}</b><span>${esc(tags.join(' · '))}</span></span>
+      <button class="ib ${shown ? '' : 'offeye'}" data-a="eye" data-id="${s.id}" title="${shown ? 'Hide from editor' : 'Show in editor'}">${shown ? IC.eye : IC.eyeoff}</button>
+      <button class="ib" data-a="menu" data-id="${s.id}" title="More">${IC.more}</button></div>`;
+  }).join('');
+  const baseRow = (S.d.base && S.d.base.length) ? `<div class="rrow ${vm === 'base' ? 'focus' : ''}" data-a="base" style="--rbg:#6b6b6b1f;${vm === 'base' ? 'border-left-color:' + BASEC : ''}"><span style="width:15px"></span><span class="dot" style="background:${BASEC};width:12px;height:12px;margin-top:2px"></span><span class="nm"><b>Shared wiring</b><span>${S.d.base.length} instr. · used by ${segs().filter((s) => s.base).length} segments</span></span></div>` : '';
+  return `<div class="rail"><h3>${IC.seg.replace('<svg', '<svg width="16" height="16" style="margin-right:6px;color:#555"')}Segments</h3><div class="hint">Runs: ${esc(steps)}</div>
+  <div class="rrow ${vm === 'whole' || (vm === 'several' && S.sel === 'whole') ? 'focus' : ''}" data-a="whole" style="--rbg:#005fb81a;${vm === 'whole' ? 'border-left-color:#005fb8' : ''}"><span style="width:15px"></span>${IC.ovw.replace('<svg', '<svg width="14" height="14" style="margin-top:2px;color:#555"')}<span class="nm"><b>All segments</b><span>Run plan and global settings</span></span></div>
+  ${baseRow}<div style="border-top:1px solid #eee"></div><div style="overflow:auto;flex:1">${rows}</div>
+  <div class="ft"><button class="b seg" data-a="openAdd" style="justify-content:center">${IC.add}<span>Add Segment…</span></button><div style="font-size:11px;color:#666;line-height:1.35">Checkbox: segment on/off. Eye: show it in the editor. Click a name to work on just that segment.</div></div></div>`;
+}
+function compactPicker() {
+  const fs = focusSeg();
+  const vm = viewMode();
+  const opts = [`<option value="whole" ${vm === 'whole' ? 'selected' : ''}>All segments</option>`].concat(segs().map((s) => `<option value="${s.id}" ${fs && fs.id === s.id ? 'selected' : ''}>${esc(lbl(s))}${s.on ? '' : ' (off)'}</option>`));
+  return `<div style="display:flex;align-items:center;gap:6px;padding:0 2px 5px">${fs ? dot(fs.color) : IC.seg.replace('<svg', '<svg width="14" height="14"')}<b>Segment</b><select class="combo" data-f="pick" style="flex:1">${opts.join('')}</select>${btn('more', '', 'menuC', { tip: 'Segment options' })}${btn('add', '', 'openAdd', { tip: 'Add Segment…' })}</div>`;
 }
 
-const TPL=document.getElementById('tpl');
-const HOLE=/\{\{\s*([^}]+?)\s*\}\}/g;
-function lookup(scope,expr){expr=expr.trim();if(expr==='true')return true;if(expr==='false')return false;if(/^-?\d+(\.\d+)?$/.test(expr))return Number(expr);
-  let v=scope;for(const p of expr.split('.')){if(v==null)return undefined;v=v[p];}return v;}
-function single(str){const m=/^\s*\{\{\s*([^}]+?)\s*\}\}\s*$/.exec(str||'');return m?m[1]:null;}
-function interp(str,scope){return str.replace(HOLE,(_,e)=>{const v=lookup(scope,e);return v==null?'':String(v);});}
-const BOOL=['checked','disabled','selected'];
-function renderNodes(nodes,scope,out){for(const n of nodes)renderNode(n,scope,out);}
-function renderNode(n,scope,out){
-  if(n.nodeType===3){out.push(document.createTextNode(interp(n.nodeValue,scope)));return;}
-  if(n.nodeType!==1)return;
-  const tag=n.tagName.toLowerCase();
-  if(tag==='sc-if'){if(lookup(scope,single(n.getAttribute('value'))))renderNodes(n.childNodes,scope,out);return;}
-  if(tag==='sc-for'){const list=lookup(scope,single(n.getAttribute('list')))||[];const as=n.getAttribute('as');
-    list.forEach((item)=>{const sc=Object.create(scope);sc[as]=item;renderNodes(n.childNodes,sc,out);});return;}
-  const el=document.createElement(tag);let valueProp;
-  for(const a of Array.from(n.attributes)){const name=a.name;const raw=a.value;
-    if(name.startsWith('hint-'))continue;
-    if(name.startsWith('on')){const fn=lookup(scope,single(raw)||'');if(typeof fn==='function')el.addEventListener(name.slice(2).toLowerCase(),fn);continue;}
-    const se=single(raw);
-    if(BOOL.includes(name)){const v=se!==null?lookup(scope,se):true;if(v)el.setAttribute(name,'');continue;}
-    if(name==='value'&&(tag==='input'||tag==='textarea'||tag==='select')){valueProp=se!==null?lookup(scope,se):raw;continue;}
-    el.setAttribute(name,interp(raw,scope));}
-  const kids=[];renderNodes(n.childNodes,scope,kids);kids.forEach(k=>el.appendChild(k));
-  if(valueProp!==undefined){el.value=valueProp==null?'':valueProp;if(tag==='input')el.setAttribute('value',el.value);}
-  if(tag==='input'&&n.hasAttribute('checked')){const se=single(n.getAttribute('checked'));el.checked=se!==null?!!lookup(scope,se):true;}
-  out.push(el);
+/* ---------- pages ---------- */
+function pageContent(vm) {
+  switch (S.tab) {
+    case 'ov': return overviewPage();
+    case 1: return connPage(vm);
+    case 2: return attachPage(vm);
+    case 3: return defaultsPage(vm);
+    case 4: return instrPage(vm);
+    case 5: return netsPage(vm);
+    case 6: return labelsPage(vm);
+  }
+  return '';
 }
-let comp,pending=false;const root=document.getElementById('root');
-function scheduleRender(){if(pending)return;pending=true;Promise.resolve().then(()=>{pending=false;render();});}
-function render(){const vals=comp.renderVals();const out=[];renderNodes(TPL.content.childNodes,vals,out);root.replaceChildren(...out);}
+function scopeSegs(vm) { if (vm === 'single' || vm === 'whole') return segs(); if (vm === 'base') return []; return shownSegs(); }
 
-comp=new Component({});render();
-</script>
-</body></html>
+function overviewPage() {
+  const st = runPlan();
+  const steps = st.map((x, i) => `<div class="step" style="border-color:${x.segs.length > 1 ? '#9cc8ee' : '#d1d1d1'};background:${x.segs.length > 1 ? '#f4f9fe' : '#fff'}"><div class="sh">Step ${i + 1}${x.segs.length > 1 ? ' · tested together' : ''}</div>${x.segs.map((s) => `<div style="display:flex;gap:6px;align-items:center">${dot(s.color)}${esc(lbl(s))}</div>`).join('')}<div class="why">${esc(planWhy(x))}</div></div>`).join('');
+  const off = segs().filter((s) => !s.on);
+  const rows = segs().map((s) => {
+    const ch = Object.keys(s.ov).map((k) => pdef(k).n + ' ' + s.ov[k]);
+    return `<tr class="r"><td>${chk(s.on, 'toggleOn', s.id)}</td><td><button class="lnk" style="color:#1b1b1b;text-decoration:none;display:inline-flex;gap:6px;align-items:center" data-a="focus" data-id="${s.id}">${dot(s.color)}<u>${esc(lbl(s))}</u></button></td><td>${s.instr.length}${s.base ? ' + shared' : ''}</td><td>${esc(segConns(s).join(', '))}</td><td>${s.lv ? 'LV' : '–'} / ${s.hv ? 'HV' : '–'}</td><td style="color:${ch.length ? '#9d5d00' : '#5c5c5c'}">${esc(ch.length ? ch.join(', ') : 'Global')}</td><td>${esc(s.prompt || '–')}</td><td>${esc(s.runWhen)}</td></tr>`;
+  }).join('');
+  const unused = S.d.conns.filter((c) => !usersOf(c.ref).length).map((c) => c.ref);
+  return `<div style="padding:10px 12px;display:flex;flex-direction:column;gap:10px;overflow:auto;flex:1">
+  <div style="display:flex;align-items:center;gap:10px"><b style="font-size:13px">How this test runs</b><span style="color:#5c5c5c">Easy-Wire works this out. Nobody picks a segment type.</span><div style="flex:1"></div>${btn('gear', 'Global settings…', 'tab', { id: 'set' })}${btn('run', 'Run test', 'noop')}</div>
+  <div class="plan">${steps}</div>
+  ${off.length ? `<div class="info">${IC.info}${esc(off.map(lbl).join(', '))} ${off.length > 1 ? 'are' : 'is'} off and won't run.</div>` : ''}
+  ${unused.length ? `<div class="info warn">${IC.warn}${esc(unused.join(', '))} ${unused.length > 1 ? 'are' : 'is'} not used by any segment, so ${unused.length > 1 ? 'they are' : 'it is'} only checked for shorts.</div>` : ''}
+  <div style="border:1px solid #d1d1d1;border-radius:4px;overflow:auto"><table class="g"><colgroup><col style="width:34px"><col style="width:170px"><col style="width:80px"><col style="width:130px"><col style="width:66px"><col><col style="width:170px"><col style="width:80px"></colgroup><tr><th>On</th><th>Segment</th><th>Instructions</th><th>Connectors</th><th>LV / HV</th><th>Settings</th><th>Prompt</th><th>Run when</th></tr>${rows}</table></div>
+  ${S.d.configs.length ? `<div style="color:#5c5c5c">Configurations: ${S.d.configs.map((c) => `<b>${esc(c.name)}</b> (${c.segs.map((id) => seg(id) ? lbl(seg(id)) : '').join(', ')})`).join(', ')}</div>` : ''}</div>`;
+}
+
+function connPage(vm) {
+  const m = multi();
+  const fs = focusSeg();
+  const left = S.d.conns.map((c, i) => {
+    const us = usersOf(c.ref);
+    let extra = '';
+    if (m && !fs) extra = `<td>${us.length ? us.map((s) => dot(s.color)).join(' ') + ' ' + us.map((s) => segs().indexOf(s) + 1).join(', ') : '<span style="color:#9d5d00">None</span>'}</td>`;
+    if (fs) { const uses = us.indexOf(fs) >= 0; extra = `<td>${uses ? dot(fs.color) + ' Yes' : '<span style="color:#888">No</span>'}</td>`; }
+    const dim = fs && us.indexOf(fs) < 0;
+    return `<tr class="r ${S.connSel === i ? 's' : ''} ${dim ? 'dim' : ''}" data-a="connSel" data-id="${i}"><td>${esc(c.ref)}</td><td>${esc(c.pn)}</td><td>${c.pins}</td><td>${us.length || !m ? 'Yes' : 'No'}</td>${extra}</tr>`;
+  }).join('');
+  const lib = [['AUSB-A4', '', '', 'No', 15], ['AVDS-34', '', '', 'No', 34], ['AVM1-64', '', '', 'No', 64], ['DSUB-15 SOCKET', '', '', 'Yes', 15], ['EURODIN-32', '', '', 'System', 32], ['EURODIN-32-FA', '1', '', 'No', 32], ['External Instrument-16', '', '', 'No', 16], ['FASTON .187 FEM', '', '', 'Yes', 1], ['MATE-N-LOK UNIV. PLUG 6 POS.', '', '', 'Yes', 6], ['MATE-N-LOK UNIV. PLUG 8 POS.', '', '', 'Yes', 8], ['RING TERMINAL', '', '', 'Yes', 1], ['STRIPPED WIRE', '', '', 'Yes', 1], ['SYSTEM-POINT', '', '', 'System', 1], ['38999-A35 Pin', '', '', 'No', 7]];
+  const q = S.search.toLowerCase();
+  const librows = lib.filter((r) => !q || r[0].toLowerCase().indexOf(q) >= 0).map((r, i) => `<tr class="r ${S.libSel === i ? 's' : ''}" data-a="libSel" data-id="${i}"><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+  const segCol = m ? `<col style="width:${fs ? 70 : 90}px">` : '';
+  const segTh = m ? `<th>${fs ? 'Used here' : 'Segments'}</th>` : '';
+  return `<div class="split"><div class="pane" style="width:${S.compact ? 260 : 390}px;flex-shrink:0">
+   <div class="tb">${btn('edit', 'Edit', 'noop', { tip: 'Edit connector (4-wire, smart-lights, pin labels)' })}${btn('del', 'Delete', 'noop')}${sep}<label class="opt" title="Uses Smart-Lights"><input type="checkbox">${S.compact ? 'Smart' : 'Uses Smart-Lights'}</label><div class="sp"></div><span style="color:#5c5c5c">Count ${S.d.conns.length}</span></div>
+   <div class="grid"><table class="g"><colgroup><col style="width:56px"><col><col style="width:40px"><col style="width:50px">${segCol}</colgroup><tr><th>Reference</th><th>Part Number</th><th>Pins</th><th>In Use</th>${segTh}</tr>${left}</table></div>
+   ${fs ? `<div style="padding:6px 8px;border-top:1px solid #eee;color:#5c5c5c;line-height:1.4">Connectors this segment's instructions use are included automatically. To shorts-check an unused connector in this segment, right-click it and choose Include in segment.</div>` : ''}
+  </div><div class="pane" style="flex:1">
+   <div class="tb">${btn('plug', 'Add Selected Connector', 'noop', { cls: 'pri', iconOnly: false })}<div class="sp"></div><div class="search">${IC.search.replace('<svg', '<svg width="14" height="14"')}<input data-f="search" placeholder="Search connectors" value="${esc(S.search)}"></div><select class="combo"><option>All categories</option><option>Circular</option><option>D-Sub</option><option>Terminals</option></select></div>
+   <div class="grid"><table class="g"><colgroup><col><col style="width:110px"><col style="width:60px"><col style="width:60px"><col style="width:50px"></colgroup><tr><th>Part Number</th><th>Splice / # of Groups</th><th>Verified</th><th>In Use</th><th>Pins</th></tr>${librows}</table></div>
+  </div></div>`;
+}
+
+function attachPage(vm) {
+  const m = multi();
+  const fs = focusSeg();
+  const scope = scopeSegs(vm);
+  const rows = S.d.conns.map((c, i) => {
+    const us = usersOf(c.ref);
+    const vis = us.filter((s) => scope.indexOf(s) >= 0);
+    const dim = (vm === 'seg' || vm === 'several') && !vis.length;
+    return `<tr class="r ${S.attSel === i ? 's' : ''} ${dim ? 'dim' : ''}" data-a="attSel" data-id="${i}"><td>${c.attached === c.pins ? '✓ ' : ''}${esc(c.ref)}</td><td>${esc(c.pn)}</td><td>${c.pins}</td><td>${c.attached}</td><td>${c.start}–${c.start + c.pins - 1}</td><td>No</td>${m ? `<td>${us.length ? us.map((s) => dot(s.color)).join(' ') + ' ' + us.map((s) => segs().indexOf(s) + 1).join(', ') : '<span style="color:#9d5d00">None</span>'}</td>` : ''}</tr>`;
+  }).join('');
+  const cells = [];
+  S.d.conns.forEach((c) => {
+    const us = usersOf(c.ref).filter((s) => scope.indexOf(s) >= 0);
+    for (let n = 0; n < c.pins; n++) {
+      let bg = '#ececec', fg = '#777';
+      if (!m) { bg = '#cfe2f6'; fg = '#0b4a8c'; }
+      else if (us.length === 1) { bg = us[0].color; fg = '#fff'; }
+      else if (us.length > 1) { bg = `linear-gradient(135deg,${us[0].color} 50%,${us[1].color} 50%)`; fg = '#fff'; }
+      cells.push(`<div class="pt" style="background:${bg};color:${fg}" title="${esc(c.ref)}-${n + 1}">${n === 0 ? '<b>' + esc(c.ref.replace('$', '')) + '</b>' : c.start + n}</div>`);
+    }
+  });
+  const total = S.d.conns.reduce((a, c) => a + c.pins, 0);
+  return `<div class="tb">${btn('probe', 'Attach All with Probe', 'noop', { tip: 'Attach all Connectors with Probe' })}${btn('attach', 'Attach Selected ▾', 'dd', { id: 'attach', tip: 'Attach Selected using Probe, or without' })}${btn('unattach', 'Unattach', 'noop', { tip: 'Unattach Selected' })}${btn('edit', 'Edit', 'noop', { tip: 'Edit Selected' })}<div class="sp"></div>${btn('more', 'More', 'dd', { id: 'attmore', tip: "Guided Build LED's, 4-Wire Mating Pattern" })}</div>
+  <div class="split"><div class="pane" style="flex:1"><div class="grid"><table class="g"><colgroup><col style="width:70px"><col><col style="width:60px"><col style="width:66px"><col style="width:64px"><col style="width:66px">${m ? '<col style="width:90px">' : ''}</colgroup><tr><th>Reference</th><th>Part Number</th><th>Pin Count</th><th>Attached</th><th>Points</th><th>Guide LED</th>${m ? '<th>Segments</th>' : ''}</tr>${rows}</table></div></div>
+  ${S.compact ? '' : `<div class="pane" style="width:${multi() ? 320 : 360}px;flex-shrink:0;padding:8px 10px;gap:8px"><div style="display:flex;justify-content:space-between"><b>Tester points</b><span style="color:#5c5c5c">Highest system point used: ${total}</span></div><div class="pts">${cells.join('')}</div><div style="color:#5c5c5c;line-height:1.4">${m ? 'Colors show which segment uses each point. Points shared by two shown segments show both colors.' : 'Attached points are shaded. Click a connector to highlight it.'}</div></div>`}</div>`;
+}
+
+function defaultsPage(vm) {
+  const fs = focusSeg();
+  const segMode = !!fs;
+  const t = S.t;
+  const cat = (key, title, sum, body, extra) => `<div class="cat"><div class="ch" data-a="cat" data-id="${key}">${S.cats[key] ? IC.chevd.replace('<svg', '<svg width="14" height="14"') : IC.chevr.replace('<svg', '<svg width="14" height="14"')}<span class="t">${title}</span><span class="sum">${esc(sum)}</span>${extra || ''}</div>${S.cats[key] ? body : ''}</div>`;
+  const prow = (p, dis) => {
+    if (!segMode) return `<div class="prow"><span>${esc(p.n)}</span><input class="edit num" data-f="tv" data-id="${p.k}" value="${esc(tv(p.k))}"><span class="src">${multi() ? 'Global' : ''}</span></div>`;
+    const ch = fs.ov[p.k] !== undefined;
+    return `<div class="prow ${ch ? 'chg' : ''} ${dis ? 'dis' : ''}"><span>${esc(p.n)}</span><input class="edit num" data-f="ov" data-id="${p.k}" value="${esc(sv(fs, p.k))}" ${ch && !dis ? '' : 'disabled'}><span class="src">${ch ? 'Changed (global: ' + esc(tv(p.k)) + ') ' : 'Same as global '}${dis ? '' : `<button class="lnk" data-a="ovToggle" data-id="${p.k}">${ch ? 'Reset' : 'Change'}</button>`}</span></div>`;
+  };
+  const lvOn = segMode ? fs.lv : true;
+  const hvOn = segMode ? fs.hv && t.hvOn : t.hvOn;
+  const chCount = (list) => segMode ? list.filter((p) => fs.ov[p.k] !== undefined).length : 0;
+  const badge = (n) => n ? `<span class="badge">${n} changed</span>` : '';
+  const lvSum = lvOn ? `Wire ≤ ${segMode ? sv(fs, 'wire') : tv('wire')} · Insulation > ${segMode ? sv(fs, 'lvir') : tv('lvir')}` : 'Off for this segment';
+  const hvSum = hvOn ? `DW ${segMode ? sv(fs, 'dw') : tv('dw')} ${segMode ? sv(fs, 'freq') : tv('freq')}, ${segMode ? sv(fs, 'cur') : tv('cur')}, ${segMode ? sv(fs, 'dwell') : tv('dwell')} · IR ${segMode ? sv(fs, 'irv') : tv('irv')} > ${segMode ? sv(fs, 'irmin') : tv('irmin')} · Wait for HIPOT button` : 'High voltage testing is off';
+  const lvBody = `<div class="cb ${segMode ? 'one' : ''}">${segMode ? `<div style="grid-column:1/-1">${tgl(fs.lv, 'segLv', 'Test low voltage in this segment')}</div>` : ''}${LVP.map((p) => prow(p, !lvOn)).join('')}<div style="grid-column:1/-1;display:flex;gap:8px">${btn('edit', 'All LV settings…', 'noop', { tip: 'Opens the Low Voltage dialog' })}${segMode ? '' : btn('save', 'Save for New Tests', 'noop')}</div></div>`;
+  const opts = [['DW Test', true], ['IR Test', true], ['Wait for HIPOT Button', true], ['Halt on First Error', false], ['High Speed Mode', false], ['Diagnose Hipot Faults', false], ['IR Advanced Options', false], ['Skip Cable Present Check', false], ['xHV / xHVC Supply', false]];
+  const shownOpts = S.hvAll ? opts : opts.filter((o) => o[1]);
+  const hvBody = `<div class="cb ${segMode ? 'one' : ''}">${segMode ? `<div style="grid-column:1/-1;display:flex;gap:18px;align-items:center">${tgl(fs.hv, 'segHv', 'Test high voltage in this segment')}<span>Check isolation against</span><select class="combo" data-f="iso"><option ${fs.iso === 'Rest of fixture' ? 'selected' : ''}>Rest of fixture</option><option ${fs.iso === 'This segment only' ? 'selected' : ''}>This segment only</option></select></div>` : ''}
+   ${HVP.map((p) => prow(p, !hvOn)).join('')}
+   ${segMode ? '' : `<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding-top:2px"><span class="lbl">Options:</span>${shownOpts.map((o) => `<label class="opt"><input type="checkbox" ${o[1] ? 'checked' : ''}>${o[0]}</label>`).join('')}<button class="lnk" data-a="hvAll">${S.hvAll ? 'Show only options that are on' : 'Show all ' + opts.length + ' options'}</button></div>`}
+   <div style="grid-column:1/-1;display:flex;gap:8px">${btn('hv', 'All HV settings…', 'openHv', { tip: 'Opens the High Voltage Test Parameters dialog' })}${segMode ? '' : btn('edit', 'Customize HV by Net…', 'noop')}</div></div>`;
+  const wholeOnly = (title) => segMode ? `<div class="cat"><div class="ch" style="cursor:default">${IC.chevr.replace('<svg', '<svg width="14" height="14" style="opacity:.3"')}<span class="t" style="color:#888">${title}</span><span class="sum">Set in the global settings. <button class="lnk" data-a="whole">Open global settings</button></span></div></div>` : '';
+  const warnBoth = segMode && !fs.lv && !fs.hv ? `<div class="info err">${IC.warn}This segment doesn't test anything. Turn on LV or HV, or add a device step. A segment like this can't be saved.</div>` : '';
+  const hvOnly = segMode && !fs.lv && fs.hv ? `<div class="info warn">${IC.warn}HV only: needs the <b>HV-only testing</b> permission. Easy-Wire runs a low-energy continuity pre-check first, then tests HV net by net. The report says "HV only".</div>` : '';
+  const procBody = `<div class="cb"><div class="fld"><label>Start Condition</label><select class="combo"><option>${esc(t.start)}</option><option>Cable is Connected</option><option>Input is Set</option></select></div><div class="fld"><label>Test Method</label><select class="combo" data-f="method"><option ${t.method === 'Single Test' ? 'selected' : ''}>Single Test</option><option ${t.method === 'Continuous' ? 'selected' : ''}>Continuous</option><option ${t.method === 'Energize' ? 'selected' : ''}>Energize</option></select></div><label class="opt"><input type="checkbox">First Article Verification Required</label><div>${btn('gear', 'Configure Inputs and Outputs…', 'noop')}</div></div>`;
+  const winBody = `<div class="cb"><div class="fld" style="grid-column:1/-1"><label>Upon loading this test launch the following file</label><div style="display:flex;gap:6px"><input class="edit" style="flex:1" placeholder="No file"><button class="b std">Browse…</button></div></div><label class="opt"><input type="checkbox" checked>Show Current Instruction</label><label class="opt"><input type="checkbox" checked>Show Connector Graphics</label><label class="opt"><input type="checkbox">Detect Error Location (Which-End)</label><div>${btn('edit', 'Set Operator Note…', 'noop')}</div></div>`;
+  const repBody = `<div class="cb"><label class="opt"><input type="checkbox">Operator Inputs</label><label class="opt"><input type="checkbox" checked>Store Test Error Details</label><label class="opt"><input type="checkbox">Store Measured Test Values</label><label class="opt"><input type="checkbox">Store High Voltage Values</label><div class="fld"><label>Serial Numbers</label><select class="combo"><option>Not Used</option><option>Per test</option><option>Per segment</option></select></div><div style="display:flex;gap:6px">${btn('report', 'Configure Reports / Auto Print…', 'noop')}${btn('report', 'Reports…', 'noop')}</div></div>`;
+  const advBody = `<div class="cb">${btn('gear', 'Set Fixture Tare Values…', 'noop')}${btn('script', 'Select Test Event Script…', 'noop')}</div>`;
+  const prompt = segMode ? cat('prompt', 'Prompt and I/O', fs.prompt ? 'Prompt: ' + fs.prompt : 'No prompt · I/O: ' + fs.io, `<div class="cb one"><div class="fld"><label>Operator prompt before this segment runs</label><input class="edit" data-f="prompt" value="${esc(fs.prompt)}" placeholder="None"></div><div class="fld"><label>I/O at segment start</label><select class="combo" style="width:220px"><option>${esc(fs.io)}</option><option>Set outputs…</option><option>Wait for input…</option></select></div></div>`) : '';
+  if (segMode && S.cats.prompt === undefined) S.cats.prompt = false;
+  const head = segMode ? '' : `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${multi() ? `<b style="font-size:13px">Global settings</b><span style="color:#5c5c5c">Every segment uses these unless it changes a value.</span>` : ''}<div style="flex:1"></div>${btn('report', 'Reports…', 'noop', { tip: 'View and print test reports' })}</div>`;
+  return `<div style="padding:10px 12px;overflow:auto;flex:1" data-keepscroll>${head}${warnBoth}${hvOnly}
+   ${cat('lv', 'Low voltage', lvSum, lvBody, badge(chCount(LVP)))}
+   ${cat('hv', 'High voltage', hvSum, hvBody, badge(chCount(HVP)) + (segMode ? '' : tgl(t.hvOn, 'hvOn', '')))}
+   ${prompt}
+   ${segMode ? wholeOnly('Test process') + wholeOnly('Test window') + wholeOnly('Report options') + wholeOnly('Advanced') : cat('proc', 'Test process', t.start + ' · ' + t.method + ' · I/O: none', procBody) + cat('win', 'Test window', 'Show current instruction · Connector graphics', winBody) + cat('rep', 'Report options', 'Store test error details · Serial numbers: ' + t.serial, repBody) + cat('adv', 'Advanced', 'Fixture tare: none · Test event script: none', advBody)}
+  </div>`;
+}
+
+function instrPage(vm) {
+  const m = multi();
+  const scope = scopeSegs(vm);
+  const rows = [];
+  let n = 0;
+  if (vm === 'base' || (vm === 'whole' && S.d.base.length)) S.d.base.forEach((i, k) => rows.push({ i, s: null, k, n: n++ }));
+  scope.forEach((s) => s.instr.forEach((i, k) => rows.push({ i, s, k, n: n++ })));
+  const showSeg = m && vm !== 'seg' && vm !== 'base';
+  const q = S.search.toLowerCase();
+  const tr = rows.filter((r) => !q || JSON.stringify(r.i).toLowerCase().indexOf(q) >= 0).map((r) => {
+    const c = r.s ? r.s.color : BASEC;
+    return `<tr class="r ${S.rowSel === r.n ? 's' : ''}" data-a="row" data-id="${r.n}" data-ctx="1">${m ? `<td class="bar" style="background:${c}"></td>` : ''}<td>${esc(r.i.t)}</td><td>${esc(r.i.f)}</td><td>${esc(r.i.to)}</td><td>${esc(r.i.p)}</td><td>${esc(r.i.label)}</td><td>${esc(r.i.aux)}</td>${showSeg ? `<td style="color:${c};font-weight:600">${r.s ? esc(lbl(r.s)) : 'Shared wiring'}</td>` : ''}</tr>`;
+  }).join('');
+  const target = vm === 'single' ? segs()[0] : (vm === 'seg' ? focusSeg() : null);
+  const addTo = vm === 'several' && shownSegs().length ? `<span style="color:#5c5c5c">to</span><select class="combo" data-f="addTo">${shownSegs().map((s) => `<option value="${s.id}" ${S.add.to === s.id ? 'selected' : ''}>${esc(lbl(s))}</option>`).join('')}</select>` : '';
+  const canAdd = vm === 'single' || vm === 'seg' || vm === 'base' || (vm === 'several' && shownSegs().length);
+  const types = ['WIRE', 'TWISTED PAIR', 'SHIELD', 'DIODE', 'RESISTOR', 'CAPACITOR', 'OPEN', 'ADVANCED'];
+  const tb1 = `<div class="tb"><select class="combo" data-f="itype" style="width:${S.compact ? 90 : 120}px">${types.map((x) => `<option>${x}</option>`).join('')}</select>${addTo}${btn('add', 'Add', 'addInstr', { dis: !canAdd, tip: canAdd ? 'Add Instruction (Ins)' : 'Pick a segment to add to' })}${btn('addm', m ? '' : 'Multiple', 'noop', { dis: !canAdd, tip: 'Add Multiple' })}${S.compact ? '' : btn('seq', m ? '' : 'Sequence', 'noop', { dis: !canAdd, tip: 'Add Sequence' })}${sep}${btn('edit', vm === 'several' ? '' : 'Edit', 'noop', { tip: 'Edit Instruction (Enter or double-click)' })}${btn('del', vm === 'several' ? '' : 'Delete', 'delInstr', { tip: 'Delete Instruction (Del)' })}${S.compact ? '' : btn('swap', '', 'noop', { tip: 'Swap Instruction Pin Order' }) + btn('type', '', 'noop', { tip: 'Change Instruction Type' })}${btn('undo', '', 'noop', { tip: 'Undo Last Change (Ctrl+Z)' })}<div class="sp"></div>${S.compact ? '' : `<div class="search" style="width:${m ? (vm === 'several' ? 110 : 140) : 170}px">${IC.search.replace('<svg', '<svg width="14" height="14"')}<input data-f="search" placeholder="Search" value="${esc(S.search)}"></div>`}${btn('text', S.compact || vm === 'several' ? '' : 'Text View', 'noop', { tip: multi() && vm !== 'whole' ? 'Text View of the segments shown' : 'Text View of the test program' })}${btn('more', S.compact ? '' : 'More', 'dd', { id: 'instr', tip: 'Reorder, Import, Learn Wiring, Component Script' })}</div>`;
+  const tb2 = '';
+  const table = `<div class="grid" data-keepscroll><table class="g"><colgroup>${m ? '<col style="width:5px">' : ''}<col style="width:${S.compact ? 70 : 100}px"><col style="width:${S.compact ? 60 : 78}px"><col style="width:${S.compact ? 60 : 78}px"><col><col style="width:${S.compact ? 60 : 82}px"><col style="width:${S.compact ? 44 : 74}px">${showSeg ? '<col style="width:130px">' : ''}</colgroup><tr>${m ? '<th></th>' : ''}<th>Type</th><th>From</th><th>To</th><th>Parameters</th><th>Label</th><th>Aux LED(s)</th>${showSeg ? '<th>Segment</th>' : ''}</tr>${tr}<tr class="end"><td colspan="${6 + (m ? 1 : 0) + (showSeg ? 1 : 0)}">-- END --</td></tr></table></div>`;
+  const side = S.compact ? '' : (S.panel ? sidePanel(vm) : `<div class="sidecol"><button class="ib" data-a="panel" title="Show settings at a glance">${IC.chevl}</button><span class="vt">Settings at a glance</span></div>`);
+  return `${tb1}${tb2}<div class="split"><div class="pane" style="flex:1">${table}</div>${side}</div>`;
+}
+function sidePanel(vm) {
+  const fs = vm === 'seg' ? focusSeg() : null;
+  const t = S.t;
+  const v = (k) => (fs ? sv(fs, k) : tv(k));
+  const c = (k) => (fs && fs.ov[k] !== undefined ? ' class="chg"' : '');
+  const lvOn = fs ? fs.lv : true, hvOn = (fs ? fs.hv : true) && t.hvOn;
+  return `<div class="side"><h4>${fs ? dot(fs.color) : ''}<span style="flex:1">${fs ? esc(lbl(fs)) : (multi() ? 'Global settings' : 'Settings at a glance')}</span><button class="ib" data-a="panel" title="Hide">${IC.chevr}</button></h4><div class="sb">
+  <div class="kv"><span>Test method</span><span>${esc(t.method)}</span><span>Start</span><span>${esc(t.start)}</span></div>
+  <div class="sec">Low voltage ${lvOn ? '' : '<span class="chg">off</span>'}</div>${lvOn ? `<div class="kv"><span>Wire</span><span${c('wire')}>≤ ${esc(v('wire'))}</span><span>Insulation</span><span${c('lvir')}>> ${esc(v('lvir'))}</span></div>` : ''}
+  <div class="sec">${IC.hv.replace('<svg', '<svg width="13" height="13"')}High voltage ${hvOn ? '' : '<span class="chg">off</span>'}</div>${hvOn ? `<div class="kv"><span>DW</span><span${c('dw')}>${esc(v('dw'))} ${esc(v('freq'))}</span><span>Current</span><span${c('cur')}>${esc(v('cur'))}</span><span>Dwell</span><span${c('dwell')}>${esc(v('dwell'))}</span><span>IR</span><span${c('irv')}>${esc(v('irv'))}, > ${esc(v('irmin'))}</span>${fs ? `<span>Isolation</span><span>${esc(fs.iso)}</span>` : ''}</div>` : ''}
+  ${fs ? `<div class="sec">Prompt and I/O</div><div class="kv"><span>Prompt</span><span>${esc(fs.prompt || 'None')}</span><span>I/O</span><span>${esc(fs.io)}</span></div>` : ''}
+  ${fs && Object.keys(fs.ov).length ? `<div style="font-size:11px;color:#9d5d00">Orange values are changed for this segment.</div>` : ''}
+  <div>${btn('edit', 'Edit settings', 'tab', { id: 'set' })}</div></div></div>`;
+}
+
+function netsPage(vm) {
+  const scope = scopeSegs(vm);
+  const m = multi();
+  const rows = [];
+  let nn = 1;
+  const addNets = (list, s) => {
+    const parent = {};
+    const find = (x) => { while (parent[x] !== x) x = parent[x] = parent[parent[x]]; return x; };
+    list.forEach((i) => { if (['WIRE', 'TWISTED PAIR'].indexOf(i.t) < 0) return; [i.f, i.to].forEach((p) => { if (parent[p] === undefined) parent[p] = p; }); const a = find(i.f), b = find(i.to); if (a !== b) parent[a] = b; });
+    const g = {}; Object.keys(parent).forEach((p) => { (g[find(p)] = g[find(p)] || []).push(p); });
+    Object.keys(g).forEach((k) => rows.push({ name: 'Net' + nn++, pts: g[k].sort(), s, hv: s && s.ov.dw ? 'Group 2 (' + s.ov.dw + ')' : 'Default' }));
+  };
+  if (vm === 'base' || (vm === 'whole' && S.d.base.length)) addNets(S.d.base, null);
+  if (vm === 'single') addNets(segs()[0].instr, segs()[0]);
+  else scope.forEach((s) => addNets(s.instr.concat(s.base && vm === 'seg' ? S.d.base : []), s));
+  const showSeg = m && vm !== 'seg' && vm !== 'base';
+  const tr = rows.map((r, i) => `<tr class="r ${i === 0 ? 's' : ''}">${m ? `<td class="bar" style="background:${r.s ? r.s.color : BASEC}"></td>` : ''}<td>${IC.hv.replace('<svg', '<svg width="13" height="13" style="color:#d4a200;vertical-align:-2px"')} ${r.name}</td><td>${r.pts.length}</td><td>${esc(r.pts.join(' '))}</td><td>${esc(r.hv)}</td>${showSeg ? `<td style="color:${r.s ? r.s.color : BASEC};font-weight:600">${r.s ? esc(lbl(r.s)) : 'Shared wiring'}</td>` : ''}</tr>`).join('');
+  const sub = `<select class="combo" data-f="netTab">${[['nets', 'All nets'], ['comp', 'Nets joined by components'], ['single', 'Single points']].map((x) => `<option value="${x[0]}" ${S.netTab === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select>`;
+  return `<div class="tb">${sub}${btn('info', 'Details', 'noop', { tip: 'Net details' })}${btn('hv', 'HV for Selected ▾', 'dd', { id: 'hvctl', tip: 'HV control: Off, On, High Cap' })}<div class="sp"></div>${S.compact ? '' : `<div class="search" style="width:170px">${IC.search.replace('<svg', '<svg width="14" height="14"')}<input placeholder="Search nets"></div>`}${btn('text', S.compact ? '' : 'Text View', 'noop', { tip: 'Text View of the nets' })}${btn('more', S.compact ? '' : 'More', 'dd', { id: 'netmore', tip: 'Customize High Voltage Test By Net' })}</div>
+  ${vm === 'seg' && focusSeg().base ? `<div class="segbar" style="color:#555">${dot(BASEC)} Includes shared wiring nets. This is what the tester expects while this segment runs.</div>` : ''}
+  <div class="grid"><table class="g"><colgroup>${m ? '<col style="width:5px">' : ''}<col style="width:90px"><col style="width:50px"><col><col style="width:140px">${showSeg ? '<col style="width:130px">' : ''}</colgroup><tr>${m ? '<th></th>' : ''}<th>Name</th><th>Count</th><th>Points</th><th>Hipot Parameter Group</th>${showSeg ? '<th>Segment</th>' : ''}</tr>${tr}</table></div>`;
+}
+
+function labelsPage(vm) {
+  const m = multi();
+  const scope = scopeSegs(vm);
+  const conns = (vm === 'seg' || vm === 'several') ? S.d.conns.filter((c) => usersOf(c.ref).some((s) => scope.indexOf(s) >= 0)) : (vm === 'base' ? S.d.conns.filter((c) => baseConns().indexOf(c.ref) >= 0) : S.d.conns);
+  const labels = {};
+  segs().forEach((s) => s.instr.forEach((i) => { if (i.label) { labels[i.f] = labels[i.f] || i.label; } }));
+  S.d.base.forEach((i) => { if (i.label) labels[i.f] = labels[i.f] || i.label; });
+  Object.assign(labels, S.labels || {});
+  const rows = [];
+  conns.forEach((c) => { for (let n = 1; n <= c.pins && rows.length < 80; n++) { const pin = c.ref + '-' + n; const us = usersOf(c.ref); rows.push(`<tr class="r"><td>${esc(c.ref)}</td><td>${n}</td><td>${c.start + n - 1}</td><td style="padding:1px 4px"><input class="edit" style="height:18px;width:100%;border-color:#e3e3e3" data-f="label" data-id="${esc(pin)}" value="${esc(labels[pin] || '')}"></td>${m ? `<td>${us.map((s) => dot(s.color)).join(' ')} ${esc(us.map((s) => segs().indexOf(s) + 1).join(', '))}</td>` : ''}</tr>`); } });
+  return `<div class="tb">${tgl(true, 'noop', 'Use Labels')}${sep}${btn('import', 'Import…', 'noop', { tip: 'Import Labels' })}${btn('add', 'Auto Fill…', 'noop')}${btn('del', 'Delete', 'dd', { id: 'labdel', tip: 'Delete Selected or Delete All' })}<div class="sp"></div><span style="color:#5c5c5c">Connector</span><select class="combo"><option>All connectors</option>${conns.map((c) => `<option>${esc(c.ref)}</option>`).join('')}</select></div>
+  <div class="grid"><table class="g"><colgroup><col style="width:80px"><col style="width:50px"><col style="width:90px"><col>${m ? '<col style="width:110px">' : ''}</colgroup><tr><th>Connector</th><th>Pin</th><th>Tester point</th><th>Label (type to edit)</th>${m ? '<th>Used by</th>' : ''}</tr>${rows.join('')}</table></div>
+  ${m ? '<div style="padding:5px 10px;color:#5c5c5c;border-top:1px solid #eee">A label belongs to the pin, so it is the same in every segment.</div>' : ''}`;
+}
+
+/* ---------- overlays ---------- */
+function overlays() {
+  let h = '';
+  if (S.menu) h += segMenu();
+  if (S.more) h += moreMenu();
+  if (S.ctx) h += ctxMenu();
+  if (S.dlg === 'add') h += addDlg();
+  if (S.dlg === 'props') h += propsDlg();
+  if (S.dlg === 'delete') h += delDlg();
+  if (S.dlg === 'hv') h += hvDlg();
+  return h;
+}
+function segMenu() {
+  const s = seg(S.menu.id);
+  if (!s) return '';
+  const used = S.d.configs.filter((c) => c.segs.indexOf(s.id) >= 0);
+  const mi = (ic, t, a, k, cls) => `<button class="mi ${cls || ''}" data-a="${a}" data-id="${s.id}">${ic ? IC[ic] : '<span style="width:16px"></span>'}<span>${t}</span>${k ? `<span class="k">${k}</span>` : ''}</button>`;
+  return `<div class="menu" style="left:${S.menu.x}px;top:${S.menu.y}px">${mi('gear', '<b>Segment Properties…</b>', 'props', 'Enter')}${mi('edit', 'Rename', 'props', 'F2')}${mi('', 'Color…', 'propsGen')}<hr>${mi('run', 'Run this segment', 'runSeg', 'Ctrl+R')}${mi('copy', 'Duplicate', 'dup')}${mi('part', 'Duplicate as new Part…', 'dupPart')}<hr>${mi('up', 'Move up', 'mUp')}${mi('down', 'Move down', 'mDown')}<hr>${mi('del', 'Delete segment…', 'askDel', 'Del', 'danger')}${used.length ? `<div style="padding:2px 10px 4px 34px;font-size:11px;color:#9d5d00">Used by configuration "${esc(used[0].name)}"</div>` : ''}</div>`;
+}
+const DD = {
+  instr: () => [['search', 'Search Instruction List…'], ['reorder', 'Reorder Instruction List…'], ['import', 'Import Instructions from File…'], ['learn', 'Learn Attached Wiring Pattern'], ['script', 'Select Component Script…']].concat(multi() ? [['-'], ['seg', 'Move Selected to Segment…']] : []),
+  attach: () => [['probe', 'Attach Selected using Probe'], ['attach', 'Attach Selected without using Probe']],
+  attmore: () => [['led', "Attach Guided Build LED's"], ['four', 'Show 4-Wire Mating Pattern']],
+  hvctl: () => [['', 'HV Off'], ['', 'HV On'], ['', 'HV High Cap']],
+  netmore: () => [['hv', 'Customize High Voltage Test By Net…'], ['search', 'Search Nets…']],
+  labdel: () => [['del', 'Delete Selected'], ['del', 'Delete All…']]
+};
+function moreMenu() {
+  const items = (DD[S.more.kind] || (() => []))();
+  return `<div class="menu" style="left:${S.more.x}px;top:${S.more.y}px">${items.map((i) => i[0] === '-' ? '<hr>' : `<button class="mi" data-a="closeMenus">${i[0] ? IC[i[0]] : '<span style="width:16px"></span>'}<span>${i[1]}</span></button>`).join('')}</div>`;
+}
+function ctxMenu() {
+  const mi = (ic, t, k, a) => `<button class="mi" data-a="${a || 'closeMenus'}">${ic ? IC[ic] : '<span style="width:16px"></span>'}<span>${t}</span>${k ? `<span class="k">${k}</span>` : ''}</button>`;
+  const move = multi() ? '<hr>' + segs().map((s) => `<button class="mi" data-a="closeMenus">${dot(s.color)}<span>Move to ${esc(lbl(s))}</span></button>`).join('') : '';
+  return `<div class="menu" style="left:${S.ctx.x}px;top:${S.ctx.y}px">${mi('edit', '<b>Edit Instruction…</b>', 'Enter')}${mi('del', 'Delete Instruction', 'Del', 'delInstr')}${mi('swap', 'Swap Pin Order', '')}${mi('type', 'Change Instruction Type…', '')}${mi('copy', 'Copy', 'Ctrl+C')}${move}</div>`;
+}
+function dlgShell(w, title, body, buttons, color) {
+  return `<div class="overlay"><div class="dlg" style="width:${S.compact ? 600 : w}px"><div class="dt">${color ? dot(color) : '<div class="ico" style="width:14px;height:14px;border-radius:3px;background:#c4262e;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700">C</div>'}<span class="cap">${title}</span><button class="ib" data-a="closeDlg">${IC.close}</button></div>${color ? `<div style="height:4px;background:${color}"></div>` : ''}${body}<div class="db">${buttons}</div></div></div>`;
+}
+function addDlg() {
+  const a = S.add;
+  const first = !multi();
+  const opts = segs().map((s) => `<option value="${s.id}" ${a.copyId === s.id ? 'selected' : ''}>${esc(first ? 'this test (' + s.instr.length + ' instructions)' : lbl(s))}</option>`).join('');
+  const body = `<div class="dc">
+   ${first ? `<div class="info">${IC.info}<span>Splitting this test into segments. Your ${segs()[0].instr.length} existing instructions become <b>Segment 1</b>, and the test's settings become the global settings every segment starts from. You can undo this.</span></div>
+   <div class="fld"><label>Name for your existing instructions</label><input class="edit" data-f="addFirst" value="${esc(a.firstName)}"></div>` : ''}
+   <div class="fld"><label>New segment name</label><input class="edit" data-f="addName" value="${esc(a.name)}"></div>
+   <div class="fld"><span class="lbl">Start with</span>
+     <label class="radio"><input type="radio" name="st" ${a.start === 'empty' ? 'checked' : ''} data-a="addStart" data-id="empty">No instructions</label>
+     <label class="radio"><input type="radio" name="st" ${a.start === 'move' ? 'checked' : ''} data-a="addStart" data-id="move">The selected instructions, moved out of ${first ? 'the test' : esc(lbl(seg(a.copyId) || segs()[0]))} (${a.selCount} selected)</label>
+     <label class="radio"><input type="radio" name="st" ${a.start === 'copy' ? 'checked' : ''} data-a="addStart" data-id="copy">A copy of <select class="combo" data-f="addCopy" ${a.start === 'copy' ? '' : 'disabled'}>${opts}</select></label></div>
+   <div class="fld"><span class="lbl">Settings</span>
+     <label class="radio"><input type="radio" name="se" ${a.set === 'global' ? 'checked' : ''} data-a="addSet" data-id="global">Use the global test settings (recommended)</label>
+     <label class="radio"><input type="radio" name="se" ${a.set === 'copy' ? 'checked' : ''} data-a="addSet" data-id="copy" ${first ? 'disabled' : ''}>Same as ${first ? 'another segment' : 'the segment copied above'}</label>
+     <span style="color:#5c5c5c;padding-left:22px">You can change any setting for this segment later.</span></div></div>`;
+  return dlgShell(500, first ? 'Add Segment' : 'Add Segment', body, `<button class="b pri" data-a="doAdd">Add Segment</button><button class="b std" data-a="closeDlg">Cancel</button><button class="b std" data-a="noop">${IC.help}Help</button>`);
+}
+function propsDlg() {
+  const s = seg(S.props.id);
+  if (!s) return '';
+  const tabs = [['gen', 'General'], ['par', 'Test Parameters'], ['pio', 'Prompt and I/O']].map((t) => `<button class="tab ${S.props.tab === t[0] ? 'on' : ''}" data-a="propsTab" data-id="${t[0]}" style="--tabc:${s.color}">${t[1]}</button>`).join('');
+  let body = '';
+  if (S.props.tab === 'gen') {
+    body = `<div class="fld"><label>Name</label><input class="edit" data-f="pname" value="${esc(s.name)}" style="width:300px"></div>
+    <div class="fld"><span class="lbl">Color</span><div style="display:flex;gap:6px">${PAL.map((c) => `<span class="swatch ${s.color === c ? 'on' : ''}" style="background:${c}" data-a="pcolor" data-id="${c}" title="${c}"></span>`).join('')}</div><span style="color:#5c5c5c">Red and green are kept for pass and fail. The name and number always show next to the color.</span></div>
+    <label class="opt">${chk(s.on, 'toggleOn', s.id)}Segment is on (tested)</label>
+    <label class="opt">${chk(s.base, 'pbase', s.id)}Include shared wiring (${S.d.base.length} instructions shared by switch and relay states)</label>
+    <div class="fld"><label>Run when</label><select class="combo" data-f="runWhen" style="width:300px">${['Always', 'Previous segment passed', 'Previous segment failed'].map((o) => `<option ${s.runWhen === o ? 'selected' : ''}>${o}</option>`).join('')}</select><span style="color:#5c5c5c">Planned for a later release: branch on pass/fail.</span></div>
+    <div style="color:#5c5c5c">Uses ${esc(segConns(s).join(', ') || 'no connectors')} · ${s.instr.length} instructions${s.base ? ' + ' + S.d.base.length + ' base' : ''}</div>`;
+  } else if (S.props.tab === 'par') {
+    const col = (g, list, on) => `<div style="border:1px solid #d1d1d1;border-radius:6px;overflow:hidden;flex:1"><div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f6f6f6;border-bottom:1px solid #e5e5e5">${tgl(on, g === 'LV' ? 'segLv' : 'segHv', g === 'LV' ? 'Test low voltage' : 'Test high voltage', s.id)}<span style="margin-left:auto;font-size:11px;color:${on ? '#5c5c5c' : '#9d5d00'}">${on ? 'Same as global' : 'Changed (global: on)'}</span></div>
+      <div style="padding:6px 10px;display:flex;flex-direction:column;gap:4px">${list.map((p) => { const ch = s.ov[p.k] !== undefined; return `<div class="prow ${ch ? 'chg' : ''} ${on ? '' : 'dis'}" style="grid-template-columns:20px 1fr 96px">${chk(ch, 'ovToggleP', p.k)}<span style="display:flex;flex-direction:column"><span style="font-weight:${ch ? 600 : 400}">${esc(p.n)}</span><span class="src">${ch ? 'Changed (global: ' + esc(tv(p.k)) + ')' : 'Same as global'}</span></span><input class="edit" style="width:96px" data-f="ovP" data-id="${p.k}" value="${esc(sv(s, p.k))}" ${ch && on ? '' : 'disabled'}></div>`; }).join('')}
+      ${g === 'HV' ? `<div class="prow ${on ? '' : 'dis'}" style="grid-template-columns:1fr 150px;padding-top:4px"><span>Check isolation against</span><select class="combo" data-f="isoP"><option ${s.iso === 'Rest of fixture' ? 'selected' : ''}>Rest of fixture</option><option ${s.iso === 'This segment only' ? 'selected' : ''}>This segment only</option></select></div>` : ''}</div></div>`;
+    body = `${!s.lv && !s.hv ? `<div class="info err">${IC.warn}This segment doesn't test anything. Turn on LV or HV, or add a device step. It can't be saved like this.</div>` : ''}${!s.lv && s.hv ? `<div class="info warn">${IC.warn}<span>HV only. Needs the <b>HV-only testing</b> permission. A low-energy continuity pre-check runs first, then HV is tested net by net. The report says "HV only".</span></div>` : ''}${s.lv && !s.hv ? `<div class="info">${IC.info}No hipot for this segment. Its nets are still held at the HV sink while other segments are hipotted.</div>` : ''}
+    <div style="display:flex;gap:10px;align-items:flex-start">${col('LV', LVP, s.lv)}${col('HV', HVP, s.hv)}</div><span style="color:#5c5c5c">Tick a value to change it for this segment. Unticked values follow the global settings. Same list as tab 3.</span>`;
+  } else {
+    body = `<div class="fld"><label>Operator prompt (shown before this segment runs)</label><textarea class="edit" style="height:64px;padding:6px" data-f="pprompt">${esc(s.prompt)}</textarea></div>
+    <div style="display:flex;gap:10px;align-items:center"><div style="width:120px;height:72px;border:1px dashed #9a9a9a;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#777;background:#f6f6f6">No picture</div><button class="b std">Choose Picture…</button></div>
+    <div class="fld"><label>I/O at segment start</label><select class="combo" style="width:260px"><option>${esc(s.io)}</option><option>Set outputs…</option><option>Wait for input…</option></select></div>`;
+  }
+  const blocked = !s.lv && !s.hv;
+  return dlgShell(720, 'Segment Properties - ' + esc(lbl(s)), `<div class="dtabs">${tabs}</div><div class="dc" style="border-top:1px solid #d1d1d1;margin:0 16px 0;padding:12px;min-height:${S.compact ? 260 : 330}px">${body}</div>`, `<button class="b pri" data-a="closeDlg" ${blocked ? 'disabled style="opacity:.5"' : ''}>OK</button><button class="b std" data-a="closeDlg">Cancel</button><button class="b std" data-a="noop">${IC.help}Help</button>`, s.color);
+}
+function delDlg() {
+  const s = seg(S.delId);
+  if (!s) return '';
+  const used = S.d.configs.filter((c) => c.segs.indexOf(s.id) >= 0);
+  const body = `<div class="dc"><div style="display:flex;gap:12px">${IC.warn.replace('<svg', '<svg width="32" height="32" style="color:#9d5d00;flex-shrink:0"')}<div style="display:flex;flex-direction:column;gap:6px;line-height:1.45"><b>Delete ${esc(lbl(s))}?</b><span>Its ${s.instr.length} instructions are deleted too. Connectors stay in the test. You can undo this.</span>${used.length ? `<span style="color:#9d5d00">Configuration "${esc(used[0].name)}" uses this segment and will be updated.</span>` : ''}</div></div></div>`;
+  return dlgShell(440, 'Delete Segment', body, `<button class="b pri" style="background:#a4262c;border-color:#7d1c21" data-a="doDel">Delete</button><button class="b std" data-a="closeDlg">Cancel</button>`);
+}
+function hvDlg() {
+  const fs = focusSeg();
+  const v = (k) => (fs ? sv(fs, k) : tv(k));
+  const f = (n, k, range) => `<div class="fld"><span style="font-size:11px;color:#5c5c5c">${range}</span><div style="display:flex;align-items:center;gap:6px"><span style="width:110px">${n}</span><input class="edit num" value="${esc(v(k))}"><span style="display:inline-flex;flex-direction:column"><button class="ib" style="height:13px">${IC.up.replace('<svg', '<svg width="10" height="10"')}</button><button class="ib" style="height:13px">${IC.down.replace('<svg', '<svg width="10" height="10"')}</button></span></div></div>`;
+  const opts = [['DW Test', 1], ['IR Test', 1], ['Wait for HIPOT Button', 1], ['Halt on First Error', 0], ['High Speed Mode', 0], ['Diagnose Hipot Faults', 0], ['IR Advanced Options', 0], ['Skip Cable Present Check During Hipot', 0], ['xHV / xHVC Supply', 0]];
+  const body = `<div class="dc" style="gap:10px">${fs ? `<div class="info">${IC.info}Editing ${esc(lbl(fs))}. Changed values apply to this segment only.</div>` : ''}
+  <div class="cat"><div class="ch" style="cursor:default"><span class="t">Options</span></div><div class="cb" style="grid-template-columns:repeat(3,minmax(0,1fr))">${opts.map((o) => `<label class="opt"><input type="checkbox" ${o[1] ? 'checked' : ''}>${o[0]}</label>`).join('')}</div></div>
+  <div class="cat"><div class="ch" style="cursor:default"><span class="t">Dielectric Withstand Test</span></div><div class="cb">${f('Frequency', 'freq', 'DC - 60 Hz')}${f('Total Current', 'cur', '10.0 uA - 2.80 mA')}${f('DW Voltage', 'dw', '10.0 V - 1.55 kV')}${f('Dwell Time', 'dwell', '10 ms - 120 s')}</div></div>
+  <div class="cat"><div class="ch" style="cursor:default"><span class="t">Voltage Ramp</span></div><div class="cb"><div class="fld"><span style="font-size:11px;color:#5c5c5c">Auto - 120 s · Ramp rate = Maximum</span><div style="display:flex;gap:6px;align-items:center"><span style="width:110px">Ramp Up Time</span><input class="edit num" value="Auto"></div></div><div class="fld"><span style="font-size:11px;color:#5c5c5c">Auto - 120 s · Ramp rate = Maximum</span><div style="display:flex;gap:6px;align-items:center"><span style="width:110px">Ramp Down Time</span><input class="edit num" value="Auto"></div></div></div></div>
+  <div class="cat"><div class="ch" style="cursor:default"><span class="t">Insulation Resistance Test</span></div><div class="cb">${f('IR Voltage', 'irv', '10.0 V - 1.50 kV')}${f('IR greater than', 'irmin', '1 MΩ - 1 GΩ')}</div></div></div>`;
+  return dlgShell(760, 'High Voltage Test Parameters', body, `<button class="b std" data-a="noop">Restore Factory Setting</button><button class="b std" data-a="noop">Load from Saved Settings</button><button class="b std" data-a="noop">Save these Settings</button><div style="flex:1"></div><button class="b pri" data-a="closeDlg">OK</button><button class="b std" data-a="closeDlg">Cancel</button>`, fs ? fs.color : null);
+}
+
+/* ---------- actions ---------- */
+function upSeg(id, patch) { S.d.segs = segs().map((s) => (s.id === id ? Object.assign({}, s, patch) : s)); }
+function relPos(el, dx, dy) { const w = document.getElementById('win').getBoundingClientRect(); const r = el.getBoundingClientRect(); return { x: Math.min(r.left - w.left + (dx || 0), w.width - 230), y: Math.min(r.top - w.top + (dy || 0), w.height - 300) }; }
+const A = {
+  load: (id) => load(id),
+  noop: () => {},
+  tab: (id) => { S.tab = LAST[id] !== undefined ? LAST[id] : Number(id); S.search = ''; },
+  whole: () => { S.sel = 'whole'; S.shown = segs().map((s) => s.id); if (GROUP[S.tab] === 'wire' || S.tab === 3) S.tab = 'ov'; },
+  base: () => { S.sel = 'base'; S.shown = []; if (S.tab === 'ov' || S.tab === 3) S.tab = 4; },
+  focus: (id) => { id = Number(id); S.sel = id; S.shown = [id]; if (S.tab === 'ov') S.tab = 4; },
+  eye: (id) => { id = Number(id); const on = S.shown.indexOf(id) >= 0; S.shown = on ? S.shown.filter((x) => x !== id) : S.shown.concat([id]); if (S.sel === 'base') S.sel = 'whole'; if (on && S.sel === id) S.sel = S.shown[0] || 'whole'; else if (!on && S.sel !== 'whole') S.sel = id; },
+  toggleOn: (id) => { id = Number(id); upSeg(id, { on: !seg(id).on }); },
+  menu: (id, el) => { S.menu = { id: Number(id), ...relPos(el, 26, 0) }; },
+  menuC: (id, el) => { const fs = focusSeg(); if (fs) S.menu = { id: fs.id, ...relPos(el, -170, 28) }; },
+  moreMenu: (id, el) => { S.more = Object.assign({ kind: 'instr' }, relPos(el, -140, 28)); },
+  dd: (id, el) => { const p = relPos(el, 0, 30); S.more = Object.assign({ kind: id }, p); },
+  closeMenus: () => {},
+  props: (id) => { S.props = { id: Number(id), tab: 'gen' }; S.dlg = 'props'; },
+  propsGen: (id) => { S.props = { id: Number(id), tab: 'gen' }; S.dlg = 'props'; },
+  propsTab: (id) => { S.props.tab = id; },
+  pcolor: (c) => upSeg(S.props.id, { color: c }),
+  pbase: () => { const s = seg(S.props.id); upSeg(s.id, { base: !s.base }); },
+  runSeg: () => {},
+  dup: (id) => { const s = seg(Number(id)); const nid = Math.max(...segs().map((x) => x.id)) + 1; const c = Object.assign(clone(s), { id: nid, name: s.name + ' (copy)', color: nextColor() }); const arr = segs().slice(); arr.splice(arr.indexOf(s) + 1, 0, c); S.d.segs = arr; S.sel = nid; S.shown = [nid]; },
+  dupPart: (id) => { A.dup(id); const s = seg(S.sel); upSeg(s.id, { name: 'Part ' + segs().length }); },
+  mUp: (id) => move(Number(id), -1), mDown: (id) => move(Number(id), 1),
+  askDel: (id) => { S.delId = Number(id); S.dlg = 'delete'; },
+  doDel: () => { const s = seg(S.delId); S.d.segs = segs().filter((x) => x.id !== S.delId); S.d.configs.forEach((c) => { c.segs = c.segs.filter((x) => x !== S.delId); }); S.undo = 'Deleted ' + s.name + ' and its ' + s.instr.length + ' instructions.'; S._undoSnap = null; S.dlg = null; if (segs().length === 1) { S.sel = segs()[0].id; S.shown = [S.sel]; S.tab = 4; S.undo += ' This is a normal test again.'; } else { A.whole(); } },
+  openAdd: () => { const first = !multi(); S.add = { name: first ? 'Segment 2' : 'Segment ' + (segs().length + 1), firstName: 'Segment 1', start: 'empty', set: 'global', copyId: (focusSeg() || segs()[segs().length - 1]).id, selCount: 1 }; S.dlg = 'add'; },
+  addStart: (id) => { S.add.start = id; }, addSet: (id) => { S.add.set = id; },
+  doAdd: () => {
+    const a = S.add; const first = !multi();
+    S._undoSnap = clone(S.d);
+    if (first) upSeg(segs()[0].id, { name: a.firstName || 'Segment 1' });
+    const nid = Math.max(...segs().map((x) => x.id)) + 1;
+    const src = seg(a.copyId);
+    let moved = [];
+    if (a.start === 'move' && src) { const k = Math.min(S.rowSel, src.instr.length - 1); moved = src.instr.slice(k, k + 1); upSeg(src.id, { instr: src.instr.filter((x, i) => i !== k) }); }
+    const ns = mkSeg(nid, a.name || 'Segment ' + (segs().length + 1), nextColor(), a.start === 'copy' && src ? clone(src.instr) : moved);
+    if (a.set === 'copy' && src) ns.ov = clone(src.ov);
+    S.d.segs = segs().concat([ns]); S.sel = nid; S.shown = [nid]; S.tab = 4; S.dlg = null;
+    S.undo = first ? 'This test now has segments. Your ' + segs()[0].instr.length + ' instructions are in "' + segs()[0].name + '".' : 'Added "' + ns.name + '".';
+  },
+  undoAdd: () => { if (S._undoSnap) { S.d = S._undoSnap; S._undoSnap = null; if (!multi()) { S.sel = segs()[0].id; S.shown = [S.sel]; } else A.whole(); S.tab = 4; } S.undo = null; },
+  hideUndo: () => { S.undo = null; },
+  segLv: () => { const s = S.dlg === 'props' ? seg(S.props.id) : focusSeg(); upSeg(s.id, { lv: !s.lv }); },
+  segHv: () => { const s = S.dlg === 'props' ? seg(S.props.id) : focusSeg(); upSeg(s.id, { hv: !s.hv }); },
+  hvOn: () => { S.t.hvOn = !S.t.hvOn; },
+  hvAll: () => { S.hvAll = !S.hvAll; },
+  ovToggle: (k) => { const s = focusSeg(); const ov = Object.assign({}, s.ov); if (ov[k] !== undefined) delete ov[k]; else ov[k] = tv(k); upSeg(s.id, { ov }); },
+  ovToggleP: (k) => { const s = seg(S.props.id); const ov = Object.assign({}, s.ov); if (ov[k] !== undefined) delete ov[k]; else ov[k] = tv(k); upSeg(s.id, { ov }); },
+  cat: (k) => { S.cats[k] = !S.cats[k]; },
+  panel: () => { S.panel = !S.panel; },
+  row: (id) => { S.rowSel = Number(id); },
+  connSel: (id) => { S.connSel = Number(id); }, libSel: (id) => { S.libSel = Number(id); }, attSel: (id) => { S.attSel = Number(id); },
+  netTab: (id) => { S.netTab = id; },
+  openHv: () => { S.dlg = 'hv'; },
+  addInstr: () => {
+    const vm = viewMode();
+    if (vm === 'base') { S.d.base.push(I('WIRE', '$J3-' + (S.d.base.length * 2 + 3), '$J3-' + (S.d.base.length * 2 + 4))); return; }
+    const t = vm === 'single' ? segs()[0] : vm === 'seg' ? focusSeg() : seg(S.add.to) || shownSegs()[0];
+    if (!t) return;
+    const c = segConns(t)[0] || '$J1';
+    const typ = (document.querySelector('[data-f="itype"]') || {}).value || 'WIRE';
+    upSeg(t.id, { instr: t.instr.concat([I(typ, c + '-' + (20 + t.instr.length), c + '-' + (21 + t.instr.length))]) });
+    window.__scroll = 99999;
+  },
+  delInstr: () => {
+    const vm = viewMode(); const scope = scopeSegs(vm); let n = 0; let done = false;
+    if (vm === 'base' || (vm === 'whole' && S.d.base.length)) S.d.base = S.d.base.filter(() => n++ !== S.rowSel || (done = true, false));
+    scope.forEach((s) => { if (done) return; const keep = s.instr.filter(() => { const hit = n++ === S.rowSel; if (hit) done = true; return !hit; }); if (keep.length !== s.instr.length) upSeg(s.id, { instr: keep }); });
+  },
+  closeDlg: () => { S.dlg = null; }
+};
+function move(id, d) { const arr = segs().slice(); const i = arr.findIndex((x) => x.id === id); const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; S.d.segs = arr; }
+const F = {
+  pick: (v) => { if (v === 'whole') A.whole(); else A.focus(v); },
+  search: (v) => { S.search = v; },
+  tv: (v, k) => { S.t.vals[k] = v; },
+  ov: (v, k) => { const s = focusSeg(); const ov = Object.assign({}, s.ov); ov[k] = v; upSeg(s.id, { ov }); },
+  ovP: (v, k) => { const s = seg(S.props.id); const ov = Object.assign({}, s.ov); ov[k] = v; upSeg(s.id, { ov }); },
+  iso: (v) => upSeg(focusSeg().id, { iso: v }), isoP: (v) => upSeg(S.props.id, { iso: v }),
+  prompt: (v) => upSeg(focusSeg().id, { prompt: v }), pprompt: (v) => upSeg(S.props.id, { prompt: v }),
+  pname: (v) => upSeg(S.props.id, { name: v }), runWhen: (v) => upSeg(S.props.id, { runWhen: v }),
+  method: (v) => { S.t.method = v; },
+  netTab: (v) => { S.netTab = v; },
+  addName: (v) => { S.add.name = v; }, addFirst: (v) => { S.add.firstName = v; }, addCopy: (v) => { S.add.copyId = Number(v); },
+  addTo: (v) => { S.add.to = Number(v); },
+  label: (v, k) => { S.labels = S.labels || {}; S.labels[k] = v; },
+  itype: () => {}
+};
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]');
+  const hadMenu = S.menu || S.more || S.ctx;
+  if (!el) { if (hadMenu) { S.menu = null; S.more = null; S.ctx = null; render(); } return; }
+  if (el.tagName === 'SELECT' || (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'radio')) return;
+  e.stopPropagation();
+  const a = el.getAttribute('data-a');
+  const keepMenu = ['menu', 'menuC', 'moreMenu', 'dd'].indexOf(a) >= 0;
+  if (!keepMenu) { S.menu = null; S.more = null; S.ctx = null; }
+  const gs = document.querySelector('[data-keepscroll]'); window.__scroll = gs ? gs.scrollTop : 0;
+  if (A[a]) A[a](el.getAttribute('data-id'), el);
+  render();
+});
+document.addEventListener('contextmenu', (e) => {
+  const tr = e.target.closest('[data-ctx]');
+  if (!tr) return;
+  e.preventDefault();
+  S.rowSel = Number(tr.getAttribute('data-id'));
+  const w = document.getElementById('win').getBoundingClientRect();
+  S.ctx = { x: Math.min(e.clientX - w.left, w.width - 230), y: Math.min(e.clientY - w.top, w.height - 260) };
+  render();
+});
+document.addEventListener('change', (e) => {
+  const f = e.target.getAttribute('data-f');
+  if (f && F[f]) { const gs = document.querySelector('[data-keepscroll]'); window.__scroll = gs ? gs.scrollTop : 0; F[f](e.target.value, e.target.getAttribute('data-id')); setTimeout(render, 0); }
+});
+document.addEventListener('input', (e) => { if (e.target.getAttribute('data-f') === 'search') { S.search = e.target.value; const pos = e.target.selectionStart; render(); const n = document.querySelector('[data-f="search"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } } });
+
+/* ---------- presets for screenshots and the tour ---------- */
+const PRESETS = [
+  ['01-Wiring', 'A normal test: Wiring › Instructions', () => { load('new'); S.d.name = 'Sensor Lead A-112'; }],
+  ['02-Settings', 'A normal test: Settings (all sections, calm)', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 3; S.cats = { lv: false, hv: true, proc: false, win: false, rep: false, adv: false }; }],
+  ['03-HVDialog', 'High Voltage dialog, cleaned up', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 3; S.dlg = 'hv'; }],
+  ['04-Fixture', 'A normal test: Fixture › Connectors', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 1; S.libSel = 4; }],
+  ['05-Attach', 'A normal test: Fixture › Attach', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 2; }],
+  ['06-Nets', 'A normal test: Wiring › Nets', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 5; }],
+  ['07-Labels', 'A normal test: Fixture › Labels', () => { load('new'); S.d.name = 'Sensor Lead A-112'; S.tab = 6; }],
+  ['08-AddSegmentFirst', 'Adding the first segment', () => { load('new'); S.d.name = 'Sensor Lead A-112'; A.openAdd(); S.add.name = 'Switch S1 ON'; }],
+  ['09-AfterFirstAdd', 'Right after: Undo bar, segment list appears', () => { load('new'); S.d.name = 'Sensor Lead A-112'; A.openAdd(); S.add.name = 'Switch S1 ON'; A.doAdd(); A.focus(1); }],
+  ['10-Overview', 'All segments: run plan', () => { load('demo'); }],
+  ['11-SegInstructions', 'One segment: Define Instructions', () => { load('demo'); A.focus(2); }],
+  ['12-Several', 'Several segments shown at once (eye icons)', () => { load('demo'); A.focus(1); A.eye(2); A.eye(4); S.add.to = 2; }],
+  ['13-SegSettings', 'One segment: settings vs global', () => { load('demo'); A.focus(2); S.tab = 3; S.cats.hv = true; }],
+  ['14-SegProps', 'Segment Properties: HV only', () => { load('demo'); A.focus(4); upSeg(4, { lv: false }); S.props = { id: 4, tab: 'par' }; S.dlg = 'props'; }],
+  ['15-SegPropsGeneral', 'Segment Properties: General', () => { load('demo'); A.focus(4); S.props = { id: 4, tab: 'gen' }; S.dlg = 'props'; }],
+  ['16-Menu', 'The segment menu', () => { load('demo'); A.focus(2); S.menu = { id: 2, x: 236, y: 150 }; }],
+  ['17-Delete', 'Deleting a segment', () => { load('demo'); A.focus(2); S.delId = 2; S.dlg = 'delete'; }],
+  ['18-SegFixture', 'One segment: Fixture is shared, its part highlighted', () => { load('demo'); A.focus(4); S.tab = 2; }],
+  ['19-SharedWiring', 'Shared wiring', () => { load('demo'); A.base(); }],
+  ['20-Compact', 'Easy-Touch 640 x 480', () => { load('demo'); A.focus(2); S.compact = true; }]
+];
+window.__applyPreset = (name) => { const p = PRESETS.find((x) => x[0] === name); if (p) { S = Object.assign(S, { compact: false, menu: null, more: null, ctx: null, dlg: null, undo: null, search: '', panel: true, hvAll: false, cats: { lv: false, hv: false, proc: false, win: false, rep: false, adv: false }, add: {} }); p[2](); render(); } };
+window.__PRESETS = PRESETS;
+function boot() {
+  const tour = document.getElementById('tour');
+  const q = new URLSearchParams(location.search).get('shot');
+  if (q) { document.body.classList.add('shot'); tour.classList.add('hide'); window.__applyPreset(q); return; }
+  tour.innerHTML = `<b>Easy-Wire Test Program Editor: concept v2</b><span style="color:#555">Clickable mockup, not the real software.</span><span style="flex:1"></span><span>Jump to</span><select id="jump"><option value="">Choose a screen…</option>${PRESETS.map((p) => `<option value="${p[0]}">${p[0].slice(0, 2)}. ${esc(p[1])}</option>`).join('')}</select><button class="b std" id="restart">Start over</button>`;
+  document.getElementById('jump').addEventListener('change', (e) => { if (e.target.value) window.__applyPreset(e.target.value); });
+  document.getElementById('restart').addEventListener('click', () => { S.screen = 'start'; S.d = null; S.compact = false; S.dlg = null; render(); });
+  render();
+}
+boot();
+</script></body></html>
